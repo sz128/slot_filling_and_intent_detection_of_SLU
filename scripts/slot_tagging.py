@@ -231,7 +231,7 @@ def decode(data_feats, data_slot_tags, output_path):
 
             # slot tag
             if opt.enc_dec:
-                opt.greed_decoding = False #True
+                opt.greed_decoding = True #True, False
                 if opt.greed_decoding:
                     slot_tag_scores_1best, pred_slot_tag_1best, h_t_c_t = model_tag.decode_greed(inputs, slot_tags[:, 0:1], lens)
                     slot_tag_loss = slot_tag_loss_function(slot_tag_scores_1best.contiguous().view(-1, len(slot_tag_to_idx)), slot_tags[:, 1:].contiguous().view(-1))
