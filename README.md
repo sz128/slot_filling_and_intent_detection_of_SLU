@@ -5,10 +5,10 @@
 ## Setup
  * pytorch 0.4.0
  * python 3.6.x
- * pip install gpustat
+ * pip install gpustat [if gpu is used]
 
 ## Running
- * ./run/run_slot_tagging.sh
+ * ./run/run_slot_tagging.sh [set deviceId=-1 if you are going to use cpu for training]
  * You can get full atis data from https://github.com/yvchen/JointSLU .
 
 ## Reference
