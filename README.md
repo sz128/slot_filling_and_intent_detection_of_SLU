@@ -5,6 +5,7 @@
 ## Setup
  * pytorch 0.4.0
  * python 3.6.x
+ * pip install gpustat
 
 ## Running
  * ./run/run_slot_tagging.sh
