@@ -34,7 +34,7 @@ def auto_select_gpu(assigned_gpu_id=None):
     else:
         gpu_id_list = [int(value) for value in gpu_id_list.split(',')]
 
-    if assigned_gpu_id:
+    if assigned_gpu_id != None:
         best = assigned_gpu_id
         if best >= len(gpu_id_list):
             print("WARNING: Manually selected gpu index is out of range!")

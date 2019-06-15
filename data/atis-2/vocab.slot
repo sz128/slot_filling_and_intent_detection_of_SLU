@@ -83,6 +83,7 @@ B-toloc.state_name
 B-transport_type
 I-airline_name
 I-airport_name
+I-arrive_date.date_relative
 I-arrive_date.day_number
 I-arrive_time.end_time
 I-arrive_time.period_of_day
@@ -92,6 +93,7 @@ I-arrive_time.time_relative
 I-city_name
 I-class_type
 I-cost_relative
+I-depart_date.date_relative
 I-depart_date.day_number
 I-depart_date.today_relative
 I-depart_time.end_time
@@ -111,6 +113,7 @@ I-fromloc.city_name
 I-fromloc.state_name
 I-meal_code
 I-meal_description
+I-period_of_day
 I-restriction_code
 I-return_date.date_relative
 I-return_date.day_number

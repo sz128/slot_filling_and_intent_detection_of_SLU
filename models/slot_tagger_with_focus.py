@@ -3,70 +3,79 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.utils.rnn as rnn_utils
-from models.enc_dec.Beam import Beam
+
+from models.Beam import Beam
 
 class LSTMTagger_focus(nn.Module):
     
-    def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size, pad_token_idx, pad_tag_idx, bidirectional=True, num_layers=1, dropout=0., device=None):
+    def __init__(self, embedding_dim, tag_embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None, decoder_tied=False):
         """Initialize model."""
         super(LSTMTagger_focus, self).__init__()
         self.embedding_dim = embedding_dim
+        self.tag_embedding_dim = tag_embedding_dim
+        self.extFeats_dim = extFeats_dim
         self.hidden_dim = hidden_dim
         self.vocab_size = vocab_size
         self.tagset_size = tagset_size
-        self.pad_token_idx = pad_token_idx
-        self.pad_tag_idx = pad_tag_idx
+        #self.pad_token_idxs = pad_token_idxs
+        #self.pad_tag_idxs = pad_tag_idxs
         self.bidirectional = bidirectional
         self.num_layers = num_layers
         self.dropout = dropout
         self.device = device
+        self.decoder_tied = decoder_tied
 
         self.num_directions = 2 if self.bidirectional else 1
-        
-        self.tag_embedding_dim = self.embedding_dim #// 2  # NOTE: It is tricky.
-
-        self.word_embeddings = nn.Embedding(self.vocab_size, self.embedding_dim, self.pad_token_idx)
-        self.tag_embeddings = nn.Embedding(self.tagset_size, self.tag_embedding_dim, self.pad_tag_idx)
-
         self.dropout_layer = nn.Dropout(p=self.dropout)
+        self.tag_embeddings = nn.Embedding(self.tagset_size, self.tag_embedding_dim)
         
+        self.word_embeddings = nn.Embedding(self.vocab_size, self.embedding_dim)
         # The LSTM takes word embeddings as inputs, and outputs hidden states
+        self.append_feature_dim = 0
+        if self.extFeats_dim:
+            self.append_feature_dim += self.extFeats_dim
+            self.extFeats_linear = nn.Linear(self.append_feature_dim, self.append_feature_dim)
+        else:
+            self.extFeats_linear = None
         # with dimensionality hidden_dim.
-        self.encoder = nn.LSTM(self.embedding_dim, self.hidden_dim, num_layers=self.num_layers, bidirectional=self.bidirectional, batch_first=True, dropout=self.dropout)
-        self.decoder = nn.LSTM(self.num_directions * self.hidden_dim + self.tag_embedding_dim, self.hidden_dim, num_layers=self.num_layers, bidirectional=False, batch_first=True, dropout=self.dropout)
+        self.encoder = nn.LSTM(self.embedding_dim + self.append_feature_dim, self.hidden_dim, num_layers=self.num_layers, bidirectional=self.bidirectional, batch_first=True, dropout=self.dropout)
+        
+        self.decoder = nn.LSTM(self.tag_embedding_dim + self.num_directions * self.hidden_dim, self.hidden_dim, num_layers=self.num_layers, bidirectional=False, batch_first=True, dropout=self.dropout)
         
         # The linear layer that maps from hidden state space to tag space  # self.num_directions * self.hidden_dim
         self.hidden2tag = nn.Linear(1 * self.hidden_dim, self.tagset_size)
+        if self.decoder_tied:
+            self.hidden2tag.weight = self.tag_embeddings.weight
 
         #self.init_weights()
 
     def init_weights(self, initrange=0.2):
         """Initialize weights."""
         self.word_embeddings.weight.data.uniform_(-initrange, initrange)
-        self.tag_embeddings.weight.data.uniform_(-initrange, initrange)
+        #for pad_token_idx in self.pad_token_idxs:
+        #    self.word_embeddings.weight.data[pad_token_idx].zero_()
+        if self.extFeats_linear:
+            self.extFeats_linear.weight.data.uniform_(-initrange, initrange)
+            self.extFeats_linear.bias.data.uniform_(-initrange, initrange)
         for weight in self.encoder.parameters():
             weight.data.uniform_(-initrange, initrange)
+
+        self.tag_embeddings.weight.data.uniform_(-initrange, initrange)
         for weight in self.decoder.parameters():
             weight.data.uniform_(-initrange, initrange)
         self.hidden2tag.weight.data.uniform_(-initrange, initrange)
         self.hidden2tag.bias.data.uniform_(-initrange, initrange)
-        
-    def init_hidden(self, input):
-        # Before we've done anything, we dont have any hidden state.
-        # Refer to the Pytorch documentation to see exactly why they have this dimensionality.
-        # The axes semantics are (num_layers*num_directions, minibatch_size, hidden_dim)
-        minibatch_size = input.size(0) \
-                if self.encoder.batch_first else input.size(1)
-        h0 = torch.zeros(self.num_layers*self.num_directions, minibatch_size, self.hidden_dim, device=self.device)
-        c0 = torch.zeros(self.num_layers*self.num_directions, minibatch_size, self.hidden_dim, device=self.device)
-        return (h0, c0)
-        
-    def forward(self, word_seqs, tag_seqs, lengths):
+    
+    def forward(self, word_seqs, tag_seqs, lengths, extFeats=None, with_snt_classifier=False, masked_output=None):
         # encoder
-        h0_c0 = self.init_hidden(word_seqs)
-        word_embeds = self.dropout_layer(self.word_embeddings(word_seqs))
-        packed_word_embeds = rnn_utils.pack_padded_sequence(word_embeds, lengths, batch_first=True)
-        packed_word_lstm_out, (enc_h_t, enc_c_t) = self.encoder(packed_word_embeds, h0_c0)  # bsize x seqlen x dim
+        embeds = self.word_embeddings(word_seqs)
+        if type(extFeats) != type(None):
+            concat_input = torch.cat((embeds, self.extFeats_linear(extFeats)), 2)
+        else:
+            concat_input = embeds
+        concat_input = self.dropout_layer(concat_input)
+        packed_word_embeds = rnn_utils.pack_padded_sequence(concat_input, lengths, batch_first=True)
+        packed_word_lstm_out, (enc_h_t, enc_c_t) = self.encoder(packed_word_embeds)  # bsize x seqlen x dim
         word_lstm_out, unpacked_len = rnn_utils.pad_packed_sequence(packed_word_lstm_out, batch_first=True)
 
         # decoder
@@ -86,19 +95,29 @@ class LSTMTagger_focus(nn.Module):
 
         tag_lstm_out_reshape = tag_lstm_out.contiguous().view(tag_lstm_out.size(0)*tag_lstm_out.size(1), tag_lstm_out.size(2))
         tag_space = self.hidden2tag(self.dropout_layer(tag_lstm_out_reshape))
-        tag_scores = F.log_softmax(tag_space, dim=1)
+        if masked_output is None:
+            tag_scores = F.log_softmax(tag_space, dim=1)
+        else:
+            tag_scores = masked_function.index_masked_log_softmax(tag_space, masked_output, dim=1)
         tag_scores = tag_scores.view(tag_lstm_out.size(0), tag_lstm_out.size(1), tag_space.size(1))
-
-        return tag_scores, (enc_h_t, enc_c_t)
+        
+        if with_snt_classifier:
+            return tag_scores, ((enc_h_t, enc_c_t), word_lstm_out, lengths)
+        else:
+            return tag_scores
     
-    def decode_greed(self, word_seqs, init_tags, lengths):
-        minibatch_size = word_seqs.size(0) if self.encoder.batch_first else word_seqs.size(1)
-        max_length = word_seqs.size(1) if self.encoder.batch_first else word_seqs.size(0)
+    def decode_greed(self, word_seqs, init_tags, lengths, extFeats=None, with_snt_classifier=False, masked_output=None):
+        minibatch_size = len(lengths) #word_seqs.size(0) if self.encoder.batch_first else word_seqs.size(1)
+        max_length = max(lengths) #word_seqs.size(1) if self.encoder.batch_first else word_seqs.size(0)
         # encoder
-        h0_c0 = self.init_hidden(word_seqs)
-        word_embeds = self.dropout_layer(self.word_embeddings(word_seqs))
-        packed_word_embeds = rnn_utils.pack_padded_sequence(word_embeds, lengths, batch_first=True)
-        packed_word_lstm_out, (enc_h_t, enc_c_t) = self.encoder(packed_word_embeds, h0_c0)  # bsize x seqlen x dim
+        embeds = self.word_embeddings(word_seqs)
+        if type(extFeats) != type(None):
+            concat_input = torch.cat((embeds, self.extFeats_linear(extFeats)), 2)
+        else:
+            concat_input = embeds
+        concat_input = self.dropout_layer(concat_input)
+        packed_word_embeds = rnn_utils.pack_padded_sequence(concat_input, lengths, batch_first=True)
+        packed_word_lstm_out, (enc_h_t, enc_c_t) = self.encoder(packed_word_embeds)  # bsize x seqlen x dim
         word_lstm_out, unpacked_len = rnn_utils.pad_packed_sequence(packed_word_lstm_out, batch_first=True)
 
         # decoder
@@ -127,32 +146,41 @@ class LSTMTagger_focus(nn.Module):
 
             tag_lstm_out_reshape = tag_lstm_out.contiguous().view(tag_lstm_out.size(0)*tag_lstm_out.size(1), tag_lstm_out.size(2))
             tag_space = self.hidden2tag(self.dropout_layer(tag_lstm_out_reshape))
-            tag_scores = F.log_softmax(tag_space, dim=1) # bsize x outsize
+            if masked_output is None:
+                tag_scores = F.log_softmax(tag_space, dim=1) # bsize x outsize
+            else:
+                tag_scores = masked_function.index_masked_log_softmax(tag_space, masked_output, dim=1)
             top_path_tag_scores.append(torch.unsqueeze(tag_scores.data, 1))
-            tag_max_probs, tag_decoder_argmax = torch.max(tag_scores, 1)
-            last_tags = tag_decoder_argmax
+
+            max_probs, decoder_argmax = torch.max(tag_scores, 1)
+            last_tags = decoder_argmax
             if len(last_tags.size()) == 1:
                 last_tags = last_tags.unsqueeze(1)
-            top_path.append(last_tags.data)
-
             h_t, c_t = dec_h_t, dec_c_t
+            top_path.append(last_tags.data)
         top_path = torch.cat(top_path, 1)
         top_path_tag_scores = torch.cat(top_path_tag_scores, 1)
 
         top_dec_h_t = torch.cat(top_dec_h_t, 1)
         top_dec_c_t = torch.cat(top_dec_c_t, 1)
-	    
-        return top_path_tag_scores, top_path, (enc_h_t, enc_c_t)
+        
+        if with_snt_classifier:
+            return top_path_tag_scores, top_path, ((enc_h_t, enc_c_t), word_lstm_out, lengths)
+        else:
+            return top_path_tag_scores, top_path
     
-    def decode_beam_search(self, word_seqs, lengths, beam_size, tag2idx):
-        # 还没有修改
-        minibatch_size = word_seqs.size(0) if self.encoder.batch_first else word_seqs.size(1)
-        max_length = word_seqs.size(1) if self.encoder.batch_first else word_seqs.size(0)
+    def decode_beam_search(self, word_seqs, lengths, beam_size, tag2idx, extFeats=None, with_snt_classifier=False, masked_output=None):
+        minibatch_size = len(lengths) #word_seqs.size(0) if self.encoder.batch_first else word_seqs.size(1)
+        max_length = max(lengths) #word_seqs.size(1) if self.encoder.batch_first else word_seqs.size(0)
         # encoder
-        h0_c0 = self.init_hidden(word_seqs)
-        word_embeds = self.dropout_layer(self.word_embeddings(word_seqs))
-        packed_word_embeds = rnn_utils.pack_padded_sequence(word_embeds, lengths, batch_first=True)
-        packed_word_lstm_out, (enc_h_t, enc_c_t) = self.encoder(packed_word_embeds, h0_c0)  # bsize x seqlen x dim
+        embeds = self.word_embeddings(word_seqs)
+        if type(extFeats) != type(None):
+            concat_input = torch.cat((embeds, self.extFeats_linear(extFeats)), 2)
+        else:
+            concat_input = embeds
+        concat_input = self.dropout_layer(concat_input)
+        packed_word_embeds = rnn_utils.pack_padded_sequence(concat_input, lengths, batch_first=True)
+        packed_word_lstm_out, (enc_h_t, enc_c_t) = self.encoder(packed_word_embeds)  # bsize x seqlen x dim
         enc_word_lstm_out, unpacked_len = rnn_utils.pad_packed_sequence(packed_word_lstm_out, batch_first=True)
 
         # decoder
@@ -169,14 +197,13 @@ class LSTMTagger_focus(nn.Module):
         c_t = c_t.repeat(1, beam_size, 1)
         word_lstm_out = enc_word_lstm_out.repeat(beam_size, 1, 1)
 
-        beam = [Beam(beam_size, tag2idx, self.device) for k in range(minibatch_size)]
+        beam = [Beam(beam_size, tag2idx, device=self.device) for k in range(minibatch_size)]
         batch_idx = list(range(minibatch_size))
         remaining_sents = minibatch_size
 
         top_dec_h_t, top_dec_c_t = [0]*minibatch_size, [0]*minibatch_size
         for i in range(max_length):
             last_tags = torch.stack([b.get_current_state() for b in beam if not b.done]).t().contiguous().view(-1, 1)  # after t() -> beam_size * batch_size
-            #last_tags = Variable(last_tags, volatile=True).cuda() if self.use_cuda else Variable(last_tags, volatile=True)
             last_tags = last_tags.to(self.device)
             tag_embeds = self.dropout_layer(self.tag_embeddings(last_tags))
             decode_inputs = torch.cat((self.dropout_layer(word_lstm_out[:, i:i+1]), tag_embeds), 2) # (batch*beam) x 1 x insize
@@ -184,7 +211,10 @@ class LSTMTagger_focus(nn.Module):
 
             tag_lstm_out_reshape = tag_lstm_out.contiguous().view(tag_lstm_out.size(0)*tag_lstm_out.size(1), tag_lstm_out.size(2))
             tag_space = self.hidden2tag(self.dropout_layer(tag_lstm_out_reshape))
-            out = F.log_softmax(tag_space) # (batch*beam) x outsize
+            if masked_output is None:
+                out = F.log_softmax(tag_space) # (batch*beam) x outsize
+            else:
+                out = masked_function.index_masked_log_softmax(tag_space, masked_output, dim=1)
             
             word_lk = out.view(beam_size, remaining_sents, -1).transpose(0, 1).contiguous()
             
@@ -207,7 +237,6 @@ class LSTMTagger_focus(nn.Module):
             if not active:
                 break
 
-            #active_idx = Variable(torch.LongTensor([batch_idx[k] for k in active]), volatile=True).cuda() if self.use_cuda else Variable(torch.LongTensor([batch_idx[k] for k in active]), volatile=True)
             active_idx = torch.tensor([batch_idx[k] for k in active], dtype=torch.long, device=self.device)
             batch_idx = {beam:idx for idx, beam in enumerate(active)}
             
@@ -237,7 +266,10 @@ class LSTMTagger_focus(nn.Module):
         top_dec_c_t = torch.cat(top_dec_c_t, 1)
         allScores = torch.cat(allScores) 
 
-        return allScores, allHyp, (enc_h_t, enc_c_t)
+        if with_snt_classifier:
+            return allScores, allHyp, ((enc_h_t, enc_c_t), enc_word_lstm_out, lengths)
+        else:
+            return allScores, allHyp
         
     def load_model(self, load_dir):
         if self.device.type == 'cuda':

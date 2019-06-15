@@ -8,7 +8,7 @@ def read_word2vec_inText(file_path, device):
         word_to_idx = {}
         embedding = [0] * word_num
         for line in f:
-            line = line.strip()
+            line = line.strip('\n\r')
             items = line.split(' ')
             word = items[0]
             vector = [float(value) for value in items[1:]]
