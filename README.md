@@ -61,8 +61,8 @@
     | [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf) | 98.6 | 97.0 |
     | [Joint BERT + CRF](https://arxiv.org/pdf/1902.10909.pdf) | 98.4 | 96.7 |
     | [BLSTM](this implementation) | 99.14 | 95.75 |
-    | [BLSTM-CRF](this implementation) | 98.71 | 96.22 |
-    | [Enc-dec focus](this implementation) | 99.00 | 96.92 |
+    | [BLSTM-CRF](this implementation) | 99.00 | 96.92 |
+    | [Enc-dec focus](this implementation) | 98.71 | 96.22 |
 
 ## Tutorials B: Slot filling and intent detection with ELMo [Todo]
 
