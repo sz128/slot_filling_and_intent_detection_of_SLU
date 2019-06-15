@@ -11,13 +11,31 @@
 
 ## Tutorials A: Slot filling and intent detection with pretrained word embeddings
  1. Pretrained word embeddings are from CNN-BLSTM language models of [ELMo](https://github.com/allenai/allennlp/blob/master/tutorials/how_to/elmo.md) where word embeddings are modelled by char-CNNs. We extract the pretrained word embeddings from atis and snips datasets by:
-   * python3 scripts/get_ELMo_word_embedding_for_a_dataset.py --in_files data/atis-2/{train,valid,test} --output_word2vec local/word_embeddings/elmo_1024_cased_for_atis.txt
-   * python3 scripts/get_ELMo_word_embedding_for_a_dataset.py --in_files data/snips/{train,valid,test} --output_word2vec local/word_embeddings/elmo_1024_cased_for_snips.txt
+ ```sh
+   python3 scripts/get_ELMo_word_embedding_for_a_dataset.py \
+           --in_files data/atis-2/{train,valid,test} \
+           --output_word2vec local/word_embeddings/elmo_1024_cased_for_atis.txt
+   python3 scripts/get_ELMo_word_embedding_for_a_dataset.py \
+           --in_files data/snips/{train,valid,test} \
+           --output_word2vec local/word_embeddings/elmo_1024_cased_for_snips.txt
+```
 
  2. Run scripts of training and evaluation at each epoch.
-   * BLSTM model: "bash run/atis_with_pretrained_word_embeddings.sh slot_tagger" or "bash run/snips_with_pretrained_word_embeddings.sh slot_tagger"
-   * BLSTM-CRF model: "bash run/atis_with_pretrained_word_embeddings.sh slot_tagger_with_crf" or "bash run/snips_with_pretrained_word_embeddings.sh slot_tagger_with_crf"
-   * Enc-dec focus model (BLSTM-LSTM), the same as Encoder-Decoder NN (with aligned inputs)(Liu and Lane, 2016): "bash run/atis_with_pretrained_word_embeddings.sh slot_tagger_with_focus" or "bash run/snips_with_pretrained_word_embeddings.sh slot_tagger_with_focus"
+   * BLSTM model: 
+   ```sh
+   bash run/atis_with_pretrained_word_embeddings.sh slot_tagger
+   bash run/snips_with_pretrained_word_embeddings.sh slot_tagger
+   ```
+   * BLSTM-CRF model: 
+   ```sh
+   bash run/atis_with_pretrained_word_embeddings.sh slot_tagger_with_crf
+   bash run/snips_with_pretrained_word_embeddings.sh slot_tagger_with_crf
+   ```
+   * Enc-dec focus model (BLSTM-LSTM), the same as Encoder-Decoder NN (with aligned inputs)(Liu and Lane, 2016): 
+   ```sh
+   bash run/atis_with_pretrained_word_embeddings.sh slot_tagger_with_focus
+   bash run/snips_with_pretrained_word_embeddings.sh slot_tagger_with_focus
+   ```
  
  3. Results of ATIS:
     
