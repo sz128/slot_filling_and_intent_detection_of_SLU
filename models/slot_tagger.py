@@ -6,7 +6,7 @@ import torch.nn.utils.rnn as rnn_utils
 
 class LSTMTagger(nn.Module):
     
-    def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None):
+    def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None, elmo_model=None):
         """Initialize model."""
         super(LSTMTagger, self).__init__()
         self.embedding_dim = embedding_dim
@@ -23,7 +23,9 @@ class LSTMTagger(nn.Module):
         self.num_directions = 2 if self.bidirectional else 1
         self.dropout_layer = nn.Dropout(p=self.dropout)
         
-        self.word_embeddings = nn.Embedding(self.vocab_size, self.embedding_dim)
+        self.elmo_model = elmo_model
+        if not self.elmo_model:
+            self.word_embeddings = nn.Embedding(self.vocab_size, self.embedding_dim)
 
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         self.append_feature_dim = 0
@@ -43,7 +45,8 @@ class LSTMTagger(nn.Module):
 
     def init_weights(self, initrange=0.2):
         """Initialize weights."""
-        self.word_embeddings.weight.data.uniform_(-initrange, initrange)
+        if not self.elmo_model:
+            self.word_embeddings.weight.data.uniform_(-initrange, initrange)
         #for pad_token_idx in self.pad_token_idxs:
         #    self.word_embeddings.weight.data[pad_token_idx].zero_()
         if self.extFeats_linear:
@@ -56,7 +59,11 @@ class LSTMTagger(nn.Module):
     
     def forward(self, sentences, lengths, extFeats=None, with_snt_classifier=False, masked_output=None):
         # step 1: word embedding
-        embeds = self.word_embeddings(sentences)
+        if not self.elmo_model:
+            embeds = self.word_embeddings(sentences)
+        else:
+            emlo_embeds = self.elmo_model(sentences)
+            embeds = emlo_embeds['elmo_representations'][0]
         if type(extFeats) != type(None):
             concat_input = torch.cat((embeds, self.extFeats_linear(extFeats)), 2)
         else:

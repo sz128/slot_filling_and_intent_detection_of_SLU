@@ -36,8 +36,31 @@
    bash run/atis_with_pretrained_word_embeddings.sh slot_tagger_with_focus
    bash run/snips_with_pretrained_word_embeddings.sh slot_tagger_with_focus
    ```
+
+## Tutorials B: Slot filling and intent detection with [ELMo](https://arxiv.org/abs/1802.05365)
  
- 3. Results of ATIS:
+ 1. Run scripts of training and evaluation at each epoch.
+   * BLSTM model: 
+   ```sh
+   bash run/atis_with_elmo.sh slot_tagger
+   bash run/snips_with_elmo.sh slot_tagger
+   ```
+   * BLSTM-CRF model: 
+   ```sh
+   bash run/atis_with_elmo.sh slot_tagger_with_crf
+   bash run/snips_with_elmo.sh slot_tagger_with_crf
+   ```
+   * Enc-dec focus model (BLSTM-LSTM), the same as Encoder-Decoder NN (with aligned inputs)(Liu and Lane, 2016): 
+   ```sh
+   bash run/atis_with_elmo.sh slot_tagger_with_focus
+   bash run/snips_with_elmo.sh slot_tagger_with_focus
+   ```
+
+## Tutorials C: Slot filling and intent detection with BERT [Todo]
+
+## Results:
+ 
+ 1. Results of ATIS:
     
     | models | intent Acc (%) | slot F1-score (%) |
     |:------:|------|-------|
@@ -48,11 +71,14 @@
     | [BLSTM-CRF + ELMo](https://arxiv.org/abs/1811.05370) | 97.42 | 95.62 |
     | [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf) | 97.5 | 96.1 |
     | [Joint BERT + CRF](https://arxiv.org/pdf/1902.10909.pdf) | 97.9 | 96.0 |
-    | [BLSTM](this implementation) | 98.10 | 95.67 |
-    | [BLSTM-CRF](this implementation) | 98.54 | 95.39 |
-    | [Enc-dec focus](this implementation) | 98.43 | 95.78 |
+    | BLSTM (A. Pre-train word emb.) | 98.10 | 95.67 |
+    | BLSTM-CRF (A. Pre-train word emb.) | 98.54 | 95.39 |
+    | Enc-dec focus (A. Pre-train word emb.) | 98.43 | 95.78 |
+    | BLSTM (B. +ELMo) | 98.66 | 95.52 |
+    | BLSTM-CRF (B. +ELMo) | 98.32 | 95.62 |
+    | Enc-dec focus (B. +ELMo) | 98.66 | 95.70 |
  
- 4. Results of SNIPS:
+ 2. Results of SNIPS:
     
     | models | intent Acc (%) | slot F1-score (%) |
     |:------:|------|-------|
@@ -60,13 +86,12 @@
     | [BLSTM-CRF + ELMo](https://arxiv.org/abs/1811.05370) | 99.29 | 93.90 |
     | [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf) | 98.6 | 97.0 |
     | [Joint BERT + CRF](https://arxiv.org/pdf/1902.10909.pdf) | 98.4 | 96.7 |
-    | [BLSTM](this implementation) | 99.14 | 95.75 |
-    | [BLSTM-CRF](this implementation) | 99.00 | 96.92 |
-    | [Enc-dec focus](this implementation) | 98.71 | 96.22 |
-
-## Tutorials B: Slot filling and intent detection with ELMo [Todo]
-
-## Tutorials C: Slot filling and intent detection with BERT [Todo]
+    | BLSTM (A. Pre-train word emb.) | 99.14 | 95.75 |
+    | BLSTM-CRF (A. Pre-train word emb.) | 99.00 | 96.92 |
+    | BLSTM-CRF (A. Pre-train word emb.) | 98.71 | 96.22 |
+    | BLSTM (B. +ELMo) | 98.71 | 96.32 |
+    | BLSTM-CRF (B. +ELMo) | 98.57 | 96.61 |
+    | Enc-dec focus (B. +ELMo) | 99.14 | 96.69 |
 
 ## Reference
  * Su Zhu and Kai Yu, "Encoder-decoder with focus-mechanism for sequence labelling based spoken language understanding," in IEEE International Conference on Acoustics, Speech and Signal Processing(ICASSP), 2017, pp. 5675-5679.

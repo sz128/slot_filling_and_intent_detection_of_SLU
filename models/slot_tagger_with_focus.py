@@ -8,7 +8,7 @@ from models.Beam import Beam
 
 class LSTMTagger_focus(nn.Module):
     
-    def __init__(self, embedding_dim, tag_embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None, decoder_tied=False):
+    def __init__(self, embedding_dim, tag_embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None, decoder_tied=False, elmo_model=None):
         """Initialize model."""
         super(LSTMTagger_focus, self).__init__()
         self.embedding_dim = embedding_dim
@@ -29,7 +29,9 @@ class LSTMTagger_focus(nn.Module):
         self.dropout_layer = nn.Dropout(p=self.dropout)
         self.tag_embeddings = nn.Embedding(self.tagset_size, self.tag_embedding_dim)
         
-        self.word_embeddings = nn.Embedding(self.vocab_size, self.embedding_dim)
+        self.elmo_model = elmo_model
+        if not self.elmo_model:
+            self.word_embeddings = nn.Embedding(self.vocab_size, self.embedding_dim)
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         self.append_feature_dim = 0
         if self.extFeats_dim:
@@ -51,7 +53,8 @@ class LSTMTagger_focus(nn.Module):
 
     def init_weights(self, initrange=0.2):
         """Initialize weights."""
-        self.word_embeddings.weight.data.uniform_(-initrange, initrange)
+        if not self.elmo_model:
+            self.word_embeddings.weight.data.uniform_(-initrange, initrange)
         #for pad_token_idx in self.pad_token_idxs:
         #    self.word_embeddings.weight.data[pad_token_idx].zero_()
         if self.extFeats_linear:
@@ -68,7 +71,11 @@ class LSTMTagger_focus(nn.Module):
     
     def forward(self, word_seqs, tag_seqs, lengths, extFeats=None, with_snt_classifier=False, masked_output=None):
         # encoder
-        embeds = self.word_embeddings(word_seqs)
+        if not self.elmo_model:
+            embeds = self.word_embeddings(word_seqs)
+        else:
+            emlo_embeds = self.elmo_model(word_seqs)
+            embeds = emlo_embeds['elmo_representations'][0]
         if type(extFeats) != type(None):
             concat_input = torch.cat((embeds, self.extFeats_linear(extFeats)), 2)
         else:
@@ -110,7 +117,11 @@ class LSTMTagger_focus(nn.Module):
         minibatch_size = len(lengths) #word_seqs.size(0) if self.encoder.batch_first else word_seqs.size(1)
         max_length = max(lengths) #word_seqs.size(1) if self.encoder.batch_first else word_seqs.size(0)
         # encoder
-        embeds = self.word_embeddings(word_seqs)
+        if not self.elmo_model:
+            embeds = self.word_embeddings(word_seqs)
+        else:
+            emlo_embeds = self.elmo_model(word_seqs)
+            embeds = emlo_embeds['elmo_representations'][0]
         if type(extFeats) != type(None):
             concat_input = torch.cat((embeds, self.extFeats_linear(extFeats)), 2)
         else:
@@ -173,7 +184,11 @@ class LSTMTagger_focus(nn.Module):
         minibatch_size = len(lengths) #word_seqs.size(0) if self.encoder.batch_first else word_seqs.size(1)
         max_length = max(lengths) #word_seqs.size(1) if self.encoder.batch_first else word_seqs.size(0)
         # encoder
-        embeds = self.word_embeddings(word_seqs)
+        if not self.elmo_model:
+            embeds = self.word_embeddings(word_seqs)
+        else:
+            emlo_embeds = self.elmo_model(word_seqs)
+            embeds = emlo_embeds['elmo_representations'][0]
         if type(extFeats) != type(None):
             concat_input = torch.cat((embeds, self.extFeats_linear(extFeats)), 2)
         else:

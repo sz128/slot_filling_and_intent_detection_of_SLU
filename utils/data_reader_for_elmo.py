@@ -4,7 +4,7 @@ import operator
 import json
 import random
 
-def read_seqtag_data_with_class(data_path, word2idx, tag2idx, class2idx, separator=':', multiClass=False, keep_order=False, lowercase=False):
+def read_seqtag_data_with_class(data_path, tag2idx, class2idx, separator=':', multiClass=False, keep_order=False, lowercase=False):
     '''
     Read data from files.
     @params:
@@ -37,7 +37,7 @@ def read_seqtag_data_with_class(data_path, word2idx, tag2idx, class2idx, separat
                 word, tag = separator.join(tmp[:-1]), tmp[-1]
                 if lowercase:
                     word = word.lower()
-                in_seq.append(word2idx[word] if word in word2idx else word2idx['<unk>'])
+                in_seq.append(word)
                 tag_seq.append(tag2idx[tag] if tag in tag2idx else (tag2idx['<unk>'], tag))
             if keep_order:
                 in_seq.append(line_num)
@@ -60,13 +60,13 @@ def read_seqtag_data_with_class(data_path, word2idx, tag2idx, class2idx, separat
 
     return input_feats, tag_labels, class_labels
 
-def get_minibatch_with_class(input_seqs, tag_seqs, class_labels, word2idx, tag2idx, class2idx, train_data_indx, index, batch_size, add_start_end=False, multiClass=False, keep_order=False, enc_dec_focus=False, device=None):
+def get_minibatch_with_class(input_seqs, tag_seqs, class_labels, tag2idx, class2idx, train_data_indx, index, batch_size, add_start_end=False, multiClass=False, keep_order=False, enc_dec_focus=False, device=None):
     """Prepare minibatch."""
     input_seqs = [input_seqs[idx] for idx in train_data_indx[index:index + batch_size]]
     tag_seqs = [tag_seqs[idx] for idx in train_data_indx[index:index + batch_size]]
     class_labels = [class_labels[idx] for idx in train_data_indx[index:index + batch_size]]
     if add_start_end:
-        input_seqs = [[word2idx['<s>']] + line + [word2idx['</s>']] for line in input_seqs]
+        input_seqs = [['<s>'] + line + ['</s>'] for line in input_seqs]
         tag_seqs = [[tag2idx['O']] + line + [tag2idx['O']] for line in tag_seqs]
     else:
         pass
@@ -82,11 +82,7 @@ def get_minibatch_with_class(input_seqs, tag_seqs, class_labels, word2idx, tag2i
 
     lens = [len(seq) for seq,_,_ in data_mb]
     max_len = max(lens)
-    input_idxs = [
-        seq + [word2idx['<pad>']] * (max_len - len(seq))
-        for seq,_,_ in data_mb
-        ]
-    input_idxs = torch.tensor(input_idxs, dtype=torch.long, device=device)
+    input_idxs = [seq for seq,_,_ in data_mb]
 
     if not enc_dec_focus:
         tag_idxs = [
