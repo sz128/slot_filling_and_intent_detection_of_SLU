@@ -7,7 +7,7 @@ import torch.nn.utils.rnn as rnn_utils
 import models.crf as crf
 
 class LSTMTagger_CRF(nn.Module):
-    def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None, elmo_model=None):
+    def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None, elmo_model=None, bert_model=None):
         """Initialize model."""
         super(LSTMTagger_CRF, self).__init__()
         self.embedding_dim = embedding_dim
@@ -26,7 +26,14 @@ class LSTMTagger_CRF(nn.Module):
         self.dropout_layer = nn.Dropout(p=self.dropout)
 
         self.elmo_model = elmo_model
-        if not self.elmo_model:
+        self.bert_model = bert_model
+        if self.elmo_model and self.bert_model:
+            self.embedding_dim = self.elmo_model.get_output_dim() + self.bert_model.config.hidden_size
+        elif self.elmo_model:
+            self.embedding_dim = self.elmo_model.get_output_dim()
+        elif self.bert_model:
+            self.embedding_dim = self.bert_model.config.hidden_size
+        else:
             self.word_embeddings = nn.Embedding(self.vocab_size, self.embedding_dim)
 
         # The LSTM takes word embeddings as inputs, and outputs hidden states
@@ -48,7 +55,7 @@ class LSTMTagger_CRF(nn.Module):
 
     def init_weights(self, initrange=0.2):
         """Initialize weights."""
-        if not self.elmo_model:
+        if not self.elmo_model and not self.bert_model:
             self.word_embeddings.weight.data.uniform_(-initrange, initrange)
         if self.extFeats_linear:
             self.extFeats_linear.weight.data.uniform_(-initrange, initrange)
@@ -60,11 +67,28 @@ class LSTMTagger_CRF(nn.Module):
 
     def _get_lstm_features(self, sentences, lengths, extFeats=None, with_snt_classifier=False):
         # step 1: word embedding
-        if not self.elmo_model:
-            embeds = self.word_embeddings(sentences)
-        else:
+        if self.elmo_model and self.bert_model:
+            elmo_embeds = self.elmo_model(sentences['elmo'])
+            elmo_embeds = elmo_embeds['elmo_representations'][0]
+            tokens, segments, selects, copies, attention_mask = sentences['bert']['tokens'], sentences['bert']['segments'], sentences['bert']['selects'], sentences['bert']['copies'], sentences['bert']['mask']
+            bert_top_hiddens, _ = self.bert_model(tokens, segments, attention_mask, output_all_encoded_layers=False)
+            batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
+            chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
+            bert_embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
+            bert_embeds = bert_embeds.index_copy_(0, copies, chosen_encoder_hiddens).view(len(lengths), max(lengths), -1)
+            embeds = torch.cat((elmo_embeds, bert_embeds), dim=2)
+        elif self.elmo_model:
             emlo_embeds = self.elmo_model(sentences)
             embeds = emlo_embeds['elmo_representations'][0]
+        elif self.bert_model:
+            tokens, segments, selects, copies, attention_mask = sentences['tokens'], sentences['segments'], sentences['selects'], sentences['copies'], sentences['mask']
+            bert_top_hiddens, _ = self.bert_model(tokens, segments, attention_mask, output_all_encoded_layers=False)
+            batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
+            chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
+            embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
+            embeds = embeds.index_copy_(0, copies, chosen_encoder_hiddens).view(len(lengths), max(lengths), -1)
+        else:
+            embeds = self.word_embeddings(sentences)
         if type(extFeats) != type(None):
             concat_input = torch.cat((embeds, self.extFeats_linear(extFeats)), 2)
         else:

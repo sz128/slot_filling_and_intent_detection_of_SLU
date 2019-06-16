@@ -12,7 +12,9 @@ import gc
 install_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(install_path)
 
-from allennlp.modules.elmo import Elmo, batch_to_ids
+import itertools
+from pytorch_pretrained_bert import BertTokenizer, BertModel
+from pytorch_pretrained_bert.optimization import BertAdam, WarmupLinearSchedule
 
 import models.slot_tagger as slot_tagger
 import models.slot_tagger_with_focus as slot_tagger_with_focus
@@ -35,7 +37,7 @@ parser.add_argument('--dataset', required=True, help='atis-2 | snips')
 parser.add_argument('--dataroot', required=True, help='path to dataset')
 parser.add_argument('--save_model', default='model', help='save model to this file')
 #parser.add_argument('--mini_word_freq', type=int, default=2, help='mini_word_freq in the training data')
-parser.add_argument('--word_lowercase', action='store_true', help='word lowercase')
+#parser.add_argument('--word_lowercase', action='store_true', help='word lowercase')
 parser.add_argument('--bos_eos', action='store_true', help='Whether to add <s> and </s> to the input sentence (default is not)')
 parser.add_argument('--save_vocab', default='vocab', help='save vocab to this file')
 parser.add_argument('--noStdout', action='store_true', help='Only log to a file; no stdout')
@@ -45,8 +47,7 @@ parser.add_argument('--read_model', required=False, help='Online test: read mode
 parser.add_argument('--read_vocab', required=False, help='Online test: read input vocab from this file')
 parser.add_argument('--out_path', required=False, help='Online test: out_path')
 
-parser.add_argument('--elmo_json', required=True, help='')
-parser.add_argument('--elmo_weight', required=True, help='')
+parser.add_argument('--bert_model_name', required=True, help='bert-base-uncased, bert-base-cased, bert-large-uncased, bert-large-cased, bert-base-multilingual-cased, bert-base-chinese')
 
 #parser.add_argument('--emb_size', type=int, default=100, help='word embedding dimension')
 parser.add_argument('--tag_emb_size', type=int, default=100, help='tag embedding dimension')
@@ -63,10 +64,11 @@ parser.add_argument('--dropout', type=float, default=0., help='dropout rate at e
 parser.add_argument('--batchSize', type=int, default=64, help='input batch size')
 parser.add_argument('--test_batchSize', type=int, default=0, help='input batch size in decoding')
 parser.add_argument('--init_weight', type=float, default=0.2, help='all weights will be set to [-init_weight, init_weight] during initialization')
-parser.add_argument('--max_norm', type=float, default=5, help="threshold of gradient clipping (2-norm)")
+#parser.add_argument('--max_norm', type=float, default=5, help="threshold of gradient clipping (2-norm)")
 parser.add_argument('--max_epoch', type=int, default=50, help='max number of epochs to train for')
 parser.add_argument('--experiment', default='exp', help='Where to store samples and models')
-parser.add_argument('--optim', default='sgd', help='choose an optimizer')
+#parser.add_argument('--optim', default='sgd', help='choose an optimizer')
+parser.add_argument('--warmup_proportion', type=float, default=0.1, help='Proportion of training to perform linear learning rate warmup for. E.g., 0.1 = 10%% of training.')
 
 opt = parser.parse_args()
 
@@ -95,16 +97,15 @@ if opt.st_weight == 1 or opt.task_sc == 'none':
 
 if not opt.testing:
     if opt.task_sc:
-        opt.task = opt.task_st + '__and__' + opt.task_sc + '__and__' + opt.sc_type + '__with_elmo'
+        opt.task = opt.task_st + '__and__' + opt.task_sc + '__and__' + opt.sc_type + '__with_bert'
     else:
-        opt.task = opt.task_st + '__with_elmo'
+        opt.task = opt.task_st + '__with_bert'
     exp_path = util.hyperparam_string(opt)
     exp_path = os.path.join(opt.experiment, '', exp_path)
     exp_path += '__tes_%s' % (opt.tag_emb_size)
     if opt.task_sc:
         exp_path += '__alpha_%s' % (opt.st_weight)
-    if opt.word_lowercase:
-        exp_path += '__lowercase'
+    exp_path += '__bert_%s' % (opt.bert_model_name)
 else:
     exp_path = opt.out_path
 if not os.path.exists(exp_path):
@@ -165,11 +166,14 @@ else:
     tag_to_idx, idx_to_tag = vocab_reader.read_vocab_file(opt.read_vocab+'.tag', bos_eos=False, no_pad=True, no_unk=True)
     class_to_idx, idx_to_class = vocab_reader.read_vocab_file(opt.read_vocab+'.class', bos_eos=False, no_pad=True, no_unk=True)
 
+tokenizer = BertTokenizer.from_pretrained(opt.bert_model_name)
+
 logger.info("Vocab size: %s %s" % (len(tag_to_idx), len(class_to_idx)))
 if not opt.testing:
     vocab_reader.save_vocab(idx_to_tag, os.path.join(exp_path, opt.save_vocab+'.tag'))
     vocab_reader.save_vocab(idx_to_class, os.path.join(exp_path, opt.save_vocab+'.class'))
 
+opt.word_lowercase = False
 if not opt.testing:
     train_feats, train_tags, train_class = data_reader.read_seqtag_data_with_class(train_data_dir, tag_to_idx, class_to_idx, multiClass=opt.multiClass, lowercase=opt.word_lowercase)
     valid_feats, valid_tags, valid_class = data_reader.read_seqtag_data_with_class(valid_data_dir, tag_to_idx, class_to_idx, multiClass=opt.multiClass, keep_order=opt.testing, lowercase=opt.word_lowercase)
@@ -178,14 +182,14 @@ else:
     valid_feats, valid_tags, valid_class = data_reader.read_seqtag_data_with_class(valid_data_dir, tag_to_idx, class_to_idx, multiClass=opt.multiClass, keep_order=opt.testing, lowercase=opt.word_lowercase)
     test_feats, test_tags, test_class = data_reader.read_seqtag_data_with_class(test_data_dir, tag_to_idx, class_to_idx, multiClass=opt.multiClass, keep_order=opt.testing, lowercase=opt.word_lowercase)
 
-model_elmo = Elmo(opt.elmo_json, opt.elmo_weight, 1, dropout=0)
-opt.emb_size = None #model_elmo.get_output_dim()
+model_bert = BertModel.from_pretrained(opt.bert_model_name)
+opt.emb_size = None
 if opt.task_st == 'slot_tagger':
-    model_tag = slot_tagger.LSTMTagger(opt.emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, elmo_model=model_elmo)
+    model_tag = slot_tagger.LSTMTagger(opt.emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, bert_model=model_bert)
 elif opt.task_st == 'slot_tagger_with_focus':
-    model_tag = slot_tagger_with_focus.LSTMTagger_focus(opt.emb_size, opt.tag_emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, elmo_model=model_elmo)
+    model_tag = slot_tagger_with_focus.LSTMTagger_focus(opt.emb_size, opt.tag_emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, bert_model=model_bert)
 elif opt.task_st == 'slot_tagger_with_crf':
-    model_tag = slot_tagger_with_crf.LSTMTagger_CRF(opt.emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, elmo_model=model_elmo)
+    model_tag = slot_tagger_with_crf.LSTMTagger_CRF(opt.emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, bert_model=model_bert)
 else:
     exit()
 
@@ -232,18 +236,52 @@ if opt.task_sc:
 
 # optimizer
 params = []
-params += list(model_tag.parameters())
+params += list(model_tag.named_parameters())
 if opt.task_sc:
-    params += list(model_class.parameters())
-params = filter(lambda p: p.requires_grad, params)
-if opt.optim.lower() == 'sgd':
-    optimizer = optim.SGD(params, lr=opt.lr)
-elif opt.optim.lower() == 'adam':
-    optimizer = optim.Adam(params, lr=opt.lr, betas=(0.9, 0.999), eps=1e-8, weight_decay=0) # (beta1, beta2)
-elif opt.optim.lower() == 'adadelta':
-    optimizer = optim.Adadelta(params, rho=0.95, lr=1.0)
-elif opt.optim.lower() == 'rmsprop':
-    optimizer = optim.RMSprop(params, lr=opt.lr)
+    params += list(model_class.named_parameters())
+params = filter(lambda p: p[1].requires_grad, params)
+
+param_optimizer = params
+no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+optimizer_grouped_parameters = [
+	{'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+	{'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+	]
+num_train_optimization_steps = len(train_feats['data']) // opt.batchSize * opt.max_epoch
+optimizer = BertAdam(optimizer_grouped_parameters,
+					 lr=opt.lr,
+					 warmup=opt.warmup_proportion,
+					 t_total=num_train_optimization_steps)
+
+def prepare_inputs_for_bert(sentences, word_lengths):
+    ## sentences are sorted by sentence length
+    max_length_of_sentences = max(word_lengths)
+    tokens = []
+    selected_indexes = []
+    start_pos = 0
+    for ws in sentences:
+        selected_index = []
+        ts = tokenizer.tokenize('[CLS]')
+        for w in ws:
+            selected_index.append(len(ts))
+            ts += tokenizer.tokenize(w)
+        ts += tokenizer.tokenize('[SEP]')
+        tokens.append(ts)
+        selected_indexes.append(selected_index)
+    max_length_of_tokens = max([len(tokenized_text) for tokenized_text in tokens])
+    assert max_length_of_tokens <= model_bert.config.max_position_embeddings
+    input_mask = [[1] * len(tokenized_text) + [0] * (max_length_of_tokens - len(tokenized_text)) for tokenized_text in tokens]
+    indexed_tokens = [tokenizer.convert_tokens_to_ids(tokenized_text + ['[PAD]'] * (max_length_of_tokens - len(tokenized_text))) for tokenized_text in tokens]
+    segments_ids = [[0] * max_length_of_tokens for tokenized_text in tokens]
+    selected_indexes = [[idx + i * max_length_of_tokens for idx in selected_index] for i, selected_index in enumerate(selected_indexes)]
+    copied_indexes = [[idx + i * max_length_of_sentences for idx in range(length)] for i, length in enumerate(word_lengths)]
+
+    input_mask = torch.tensor(input_mask, dtype=torch.long, device=opt.device)
+    tokens_tensor = torch.tensor(indexed_tokens, dtype=torch.long, device=opt.device)
+    segments_tensor = torch.tensor(segments_ids, dtype=torch.long, device=opt.device)
+    selects_tensor = torch.tensor(list(itertools.chain.from_iterable(selected_indexes)), dtype=torch.long, device=opt.device)
+    copies_tensor = torch.tensor(list(itertools.chain.from_iterable(copied_indexes)), dtype=torch.long, device=opt.device)
+    return {'tokens': tokens_tensor, 'segments': segments_tensor, 'selects': selects_tensor, 'copies': copies_tensor, 'mask': input_mask}
 
 def decode(data_feats, data_tags, data_class, output_path):
     data_index = np.arange(len(data_feats))
@@ -256,7 +294,7 @@ def decode(data_feats, data_tags, data_class, output_path):
                 words, tags, raw_tags, classes, raw_classes, lens, line_nums = data_reader.get_minibatch_with_class(data_feats, data_tags, data_class, tag_to_idx, class_to_idx, data_index, j, opt.test_batchSize, add_start_end=opt.bos_eos, multiClass=opt.multiClass, keep_order=opt.testing, enc_dec_focus=opt.enc_dec, device=opt.device)
             else:
                 words, tags, raw_tags, classes, raw_classes, lens = data_reader.get_minibatch_with_class(data_feats, data_tags, data_class, tag_to_idx, class_to_idx, data_index, j, opt.test_batchSize, add_start_end=opt.bos_eos, multiClass=opt.multiClass, keep_order=opt.testing, enc_dec_focus=opt.enc_dec, device=opt.device)
-            inputs = batch_to_ids(words).to(opt.device)
+            inputs = prepare_inputs_for_bert(words, lens)
 
             if opt.enc_dec:
                 opt.greed_decoding = True
@@ -375,7 +413,7 @@ if not opt.testing:
         piece_sentences = opt.batchSize if int(nsentences * 0.1 / opt.batchSize) == 0 else int(nsentences * 0.1 / opt.batchSize) * opt.batchSize
         for j in range(0, nsentences, opt.batchSize):
             words, tags, raw_tags, classes, raw_classes, lens = data_reader.get_minibatch_with_class(train_feats['data'], train_tags['data'], train_class['data'], tag_to_idx, class_to_idx, train_data_index, j, opt.batchSize, add_start_end=opt.bos_eos, multiClass=opt.multiClass, enc_dec_focus=opt.enc_dec, device=opt.device)
-            inputs = batch_to_ids(words).to(opt.device)
+            inputs = prepare_inputs_for_bert(words, lens)
             optimizer.zero_grad()
             if opt.enc_dec:
                 tag_scores, encoder_info = model_tag(inputs, tags[:, :-1], lens, with_snt_classifier=True)
@@ -398,10 +436,6 @@ if not opt.testing:
                 losses.append([tag_loss.item()/sum(lens), 0])
                 total_loss = tag_loss
             total_loss.backward()
-            
-            # Clips gradient norm of an iterable of parameters.
-            if opt.max_norm > 0:
-                torch.nn.utils.clip_grad_norm_(params, opt.max_norm)
             
             optimizer.step()
 

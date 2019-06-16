@@ -56,7 +56,24 @@
    bash run/snips_with_elmo.sh slot_tagger_with_focus
    ```
 
-## Tutorials C: Slot filling and intent detection with BERT [Todo]
+## Tutorials C: Slot filling and intent detection with BERT
+
+ 1. Run scripts of training and evaluation at each epoch.
+   * BLSTM model: 
+   ```sh
+   bash run/atis_with_bert.sh slot_tagger
+   bash run/snips_with_bert.sh slot_tagger
+   ```
+   * BLSTM-CRF model: 
+   ```sh
+   bash run/atis_with_bert.sh slot_tagger_with_crf
+   bash run/snips_with_bert.sh slot_tagger_with_crf
+   ```
+   * Enc-dec focus model (BLSTM-LSTM), the same as Encoder-Decoder NN (with aligned inputs)(Liu and Lane, 2016): 
+   ```sh
+   bash run/atis_with_bert.sh slot_tagger_with_focus
+   bash run/snips_with_bert.sh slot_tagger_with_focus
+   ```
 
 ## Results:
  

@@ -8,7 +8,7 @@ from models.Beam import Beam
 
 class LSTMTagger_focus(nn.Module):
     
-    def __init__(self, embedding_dim, tag_embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None, decoder_tied=False, elmo_model=None):
+    def __init__(self, embedding_dim, tag_embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None, decoder_tied=False, elmo_model=None, bert_model=None):
         """Initialize model."""
         super(LSTMTagger_focus, self).__init__()
         self.embedding_dim = embedding_dim
@@ -30,7 +30,14 @@ class LSTMTagger_focus(nn.Module):
         self.tag_embeddings = nn.Embedding(self.tagset_size, self.tag_embedding_dim)
         
         self.elmo_model = elmo_model
-        if not self.elmo_model:
+        self.bert_model = bert_model
+        if self.elmo_model and self.bert_model:
+            self.embedding_dim = self.elmo_model.get_output_dim() + self.bert_model.config.hidden_size
+        elif self.elmo_model:
+            self.embedding_dim = self.elmo_model.get_output_dim()
+        elif self.bert_model:
+            self.embedding_dim = self.bert_model.config.hidden_size
+        else:
             self.word_embeddings = nn.Embedding(self.vocab_size, self.embedding_dim)
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         self.append_feature_dim = 0
@@ -53,7 +60,7 @@ class LSTMTagger_focus(nn.Module):
 
     def init_weights(self, initrange=0.2):
         """Initialize weights."""
-        if not self.elmo_model:
+        if not self.elmo_model and not self.bert_model:
             self.word_embeddings.weight.data.uniform_(-initrange, initrange)
         #for pad_token_idx in self.pad_token_idxs:
         #    self.word_embeddings.weight.data[pad_token_idx].zero_()
@@ -71,11 +78,28 @@ class LSTMTagger_focus(nn.Module):
     
     def forward(self, word_seqs, tag_seqs, lengths, extFeats=None, with_snt_classifier=False, masked_output=None):
         # encoder
-        if not self.elmo_model:
-            embeds = self.word_embeddings(word_seqs)
-        else:
+        if self.elmo_model and self.bert_model:
+            elmo_embeds = self.elmo_model(word_seqs['elmo'])
+            elmo_embeds = elmo_embeds['elmo_representations'][0]
+            tokens, segments, selects, copies, attention_mask = word_seqs['bert']['tokens'], word_seqs['bert']['segments'], word_seqs['bert']['selects'], word_seqs['bert']['copies'], word_seqs['bert']['mask']
+            bert_top_hiddens, _ = self.bert_model(tokens, segments, attention_mask, output_all_encoded_layers=False)
+            batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
+            chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
+            bert_embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
+            bert_embeds = bert_embeds.index_copy_(0, copies, chosen_encoder_hiddens).view(len(lengths), max(lengths), -1)
+            embeds = torch.cat((elmo_embeds, bert_embeds), dim=2)
+        elif self.elmo_model:
             emlo_embeds = self.elmo_model(word_seqs)
             embeds = emlo_embeds['elmo_representations'][0]
+        elif self.bert_model:
+            tokens, segments, selects, copies, attention_mask = word_seqs['tokens'], word_seqs['segments'], word_seqs['selects'], word_seqs['copies'], word_seqs['mask']
+            bert_top_hiddens, _ = self.bert_model(tokens, segments, attention_mask, output_all_encoded_layers=False)
+            batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
+            chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
+            embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
+            embeds = embeds.index_copy_(0, copies, chosen_encoder_hiddens).view(len(lengths), max(lengths), -1)
+        else:
+            embeds = self.word_embeddings(word_seqs)
         if type(extFeats) != type(None):
             concat_input = torch.cat((embeds, self.extFeats_linear(extFeats)), 2)
         else:
@@ -117,11 +141,28 @@ class LSTMTagger_focus(nn.Module):
         minibatch_size = len(lengths) #word_seqs.size(0) if self.encoder.batch_first else word_seqs.size(1)
         max_length = max(lengths) #word_seqs.size(1) if self.encoder.batch_first else word_seqs.size(0)
         # encoder
-        if not self.elmo_model:
-            embeds = self.word_embeddings(word_seqs)
-        else:
+        if self.elmo_model and self.bert_model:
+            elmo_embeds = self.elmo_model(word_seqs['elmo'])
+            elmo_embeds = elmo_embeds['elmo_representations'][0]
+            tokens, segments, selects, copies, attention_mask = word_seqs['bert']['tokens'], word_seqs['bert']['segments'], word_seqs['bert']['selects'], word_seqs['bert']['copies'], word_seqs['bert']['mask']
+            bert_top_hiddens, _ = self.bert_model(tokens, segments, attention_mask, output_all_encoded_layers=False)
+            batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
+            chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
+            bert_embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
+            bert_embeds = bert_embeds.index_copy_(0, copies, chosen_encoder_hiddens).view(len(lengths), max(lengths), -1)
+            embeds = torch.cat((elmo_embeds, bert_embeds), dim=2)
+        elif self.elmo_model:
             emlo_embeds = self.elmo_model(word_seqs)
             embeds = emlo_embeds['elmo_representations'][0]
+        elif self.bert_model:
+            tokens, segments, selects, copies, attention_mask = word_seqs['tokens'], word_seqs['segments'], word_seqs['selects'], word_seqs['copies'], word_seqs['mask']
+            bert_top_hiddens, _ = self.bert_model(tokens, segments, attention_mask, output_all_encoded_layers=False)
+            batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
+            chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
+            embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
+            embeds = embeds.index_copy_(0, copies, chosen_encoder_hiddens).view(len(lengths), max(lengths), -1)
+        else:
+            embeds = self.word_embeddings(word_seqs)
         if type(extFeats) != type(None):
             concat_input = torch.cat((embeds, self.extFeats_linear(extFeats)), 2)
         else:
@@ -184,11 +225,28 @@ class LSTMTagger_focus(nn.Module):
         minibatch_size = len(lengths) #word_seqs.size(0) if self.encoder.batch_first else word_seqs.size(1)
         max_length = max(lengths) #word_seqs.size(1) if self.encoder.batch_first else word_seqs.size(0)
         # encoder
-        if not self.elmo_model:
-            embeds = self.word_embeddings(word_seqs)
-        else:
+        if self.elmo_model and self.bert_model:
+            elmo_embeds = self.elmo_model(word_seqs['elmo'])
+            elmo_embeds = elmo_embeds['elmo_representations'][0]
+            tokens, segments, selects, copies, attention_mask = word_seqs['bert']['tokens'], word_seqs['bert']['segments'], word_seqs['bert']['selects'], word_seqs['bert']['copies'], word_seqs['bert']['mask']
+            bert_top_hiddens, _ = self.bert_model(tokens, segments, attention_mask, output_all_encoded_layers=False)
+            batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
+            chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
+            bert_embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
+            bert_embeds = bert_embeds.index_copy_(0, copies, chosen_encoder_hiddens).view(len(lengths), max(lengths), -1)
+            embeds = torch.cat((elmo_embeds, bert_embeds), dim=2)
+        elif self.elmo_model:
             emlo_embeds = self.elmo_model(word_seqs)
             embeds = emlo_embeds['elmo_representations'][0]
+        elif self.bert_model:
+            tokens, segments, selects, copies, attention_mask = word_seqs['tokens'], word_seqs['segments'], word_seqs['selects'], word_seqs['copies'], word_seqs['mask']
+            bert_top_hiddens, _ = self.bert_model(tokens, segments, attention_mask, output_all_encoded_layers=False)
+            batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
+            chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
+            embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
+            embeds = embeds.index_copy_(0, copies, chosen_encoder_hiddens).view(len(lengths), max(lengths), -1)
+        else:
+            embeds = self.word_embeddings(word_seqs)
         if type(extFeats) != type(None):
             concat_input = torch.cat((embeds, self.extFeats_linear(extFeats)), 2)
         else:
