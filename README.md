@@ -109,7 +109,7 @@
     | [Joint BERT + CRF](https://arxiv.org/pdf/1902.10909.pdf) | 98.4 | 96.7 |
     | BLSTM (A. Pre-train word emb.) | 99.14 | 95.75 |
     | BLSTM-CRF (A. Pre-train word emb.) | 99.00 | 96.92 |
-    | BLSTM-CRF (A. Pre-train word emb.) | 98.71 | 96.22 |
+    | Enc-dec focus (A. Pre-train word emb.) | 98.71 | 96.22 |
     | BLSTM (B. +ELMo) | 98.71 | 96.32 |
     | BLSTM-CRF (B. +ELMo) | 98.57 | 96.61 |
     | Enc-dec focus (B. +ELMo) | 99.14 | 96.69 |
