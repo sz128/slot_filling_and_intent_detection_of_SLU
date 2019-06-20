@@ -98,6 +98,7 @@
     | BLSTM (B. +ELMo) | 98.66 | 95.52 |
     | BLSTM-CRF (B. +ELMo) | 98.32 | 95.62 |
     | Enc-dec focus (B. +ELMo) | 98.66 | 95.70 |
+    | BLSTM (C. +BERT) | 99.10 | 95.94 | (lr=1e-4, dropout=0.5 for NLU module)
  
  2. Results of SNIPS:
     
@@ -113,6 +114,7 @@
     | BLSTM (B. +ELMo) | 98.71 | 96.32 |
     | BLSTM-CRF (B. +ELMo) | 98.57 | 96.61 |
     | Enc-dec focus (B. +ELMo) | 99.14 | 96.69 |
+    | BLSTM (C. +BERT) | 99.00 | 96.23 | (hyper-parameters are not tuned carefully)
 
 ## Reference
  * Su Zhu and Kai Yu, "Encoder-decoder with focus-mechanism for sequence labelling based spoken language understanding," in IEEE International Conference on Acoustics, Speech and Signal Processing(ICASSP), 2017, pp. 5675-5679.
