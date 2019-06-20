@@ -56,7 +56,7 @@
    bash run/snips_with_elmo.sh slot_tagger_with_focus
    ```
 
-## Tutorials C: Slot filling and intent detection with BERT
+## Tutorials C: Slot filling and intent detection with [BERT](https://github.com/huggingface/pytorch-pretrained-BERT)
 
  1. Run scripts of training and evaluation at each epoch.
    * BLSTM model: 
@@ -74,6 +74,9 @@
    bash run/atis_with_bert.sh slot_tagger_with_focus
    bash run/snips_with_bert.sh slot_tagger_with_focus
    ```
+
+## Tutorials C: Slot filling and intent detection with [XLNET](https://github.com/zihangdai/xlnet) [ToDo]
+
 
 ## Results:
  
