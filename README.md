@@ -88,6 +88,7 @@
     | [Atten.-BiRNN](Liu and Lane, 2016) | 98.21 | 95.98 |
     | [Enc-dec focus](Zhu and Yu, 2017) | - | 95.79 |
     | [Slot-Gated](Goo et al., 2018) | 94.1 | 95.2 |
+    | [Self-attentive model](https://www.aclweb.org/anthology/D18-1417) | 98.77 | 96.52 |
     | [BLSTM-CRF + ELMo](https://arxiv.org/abs/1811.05370) | 97.42 | 95.62 |
     | [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf) | 97.5 | 96.1 |
     | [Joint BERT + CRF](https://arxiv.org/pdf/1902.10909.pdf) | 97.9 | 96.0 |
