@@ -59,6 +59,16 @@
    ```
 
 ## Tutorials C: Slot filling and intent detection with [BERT](https://github.com/huggingface/pytorch-pretrained-BERT)
+ 
+ 0. Model architectures:
+   
+   * [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf):
+   
+   <img src="./figs/bert_SLU_simple.png" width="400" alt="bert_SLU_simple"/>
+   
+   * Our BERT + BLSTM (BLSTM-CRF\Enc-dec focus):
+   
+   <img src="./figs/bert_SLU_complex.png" width="400" alt="bert_SLU_complex"/>
 
  1. Run scripts of training and evaluation at each epoch.
    * BLSTM model: 
