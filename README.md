@@ -62,7 +62,7 @@
  
  0. Model architectures:
    
-   * [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf):
+   * [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf) or "with pure bert":
    
    <img src="./figs/bert_SLU_simple.png" width="400" alt="bert_SLU_simple"/>
    
