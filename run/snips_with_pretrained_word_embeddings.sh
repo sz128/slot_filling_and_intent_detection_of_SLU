@@ -10,6 +10,7 @@ cased_word_vectors=./local/word_embeddings/elmo_1024_cased_for_snips.txt
 read_word2vec_inText=${cased_word_vectors}
 word_lowercase=false
 fix_word2vec_inText=false
+word_digit_features=false #false, true
 
 dataroot=data/snips
 dataset=snips
@@ -38,5 +39,8 @@ fi
 if [[ $fix_word2vec_inText != true && $fix_word2vec_inText != True ]]; then
   unset fix_word2vec_inText
 fi
+if [[ $word_digit_features != true && $word_digit_features != True ]]; then
+  unset word_digit_features
+fi
 
-python scripts/slot_tagging_and_intent_detection.py --task_st $task_slot_filling --task_sc $task_intent_detection --dataset $dataset --dataroot $dataroot --bidirectional --lr $learning_rate --dropout $dropout_rate --batchSize $batch_size --optim $optimizer --max_norm $max_norm_of_gradient_clip --experiment $experiment_output_path --deviceId $device --max_epoch $max_epoch --emb_size $word_embedding_size --hidden_size $lstm_hidden_size --num_layers ${lstm_layers} --tag_emb_size $slot_tag_embedding_size --st_weight ${balance_weight} ${word_lowercase:+--word_lowercase} ${read_word2vec_inText:+--read_input_word2vec ${read_word2vec_inText}} ${fix_word2vec_inText:+--fix_input_word2vec} 
+python scripts/slot_tagging_and_intent_detection.py --task_st $task_slot_filling --task_sc $task_intent_detection --dataset $dataset --dataroot $dataroot --bidirectional --lr $learning_rate --dropout $dropout_rate --batchSize $batch_size --optim $optimizer --max_norm $max_norm_of_gradient_clip --experiment $experiment_output_path --deviceId $device --max_epoch $max_epoch --emb_size $word_embedding_size --hidden_size $lstm_hidden_size --num_layers ${lstm_layers} --tag_emb_size $slot_tag_embedding_size --st_weight ${balance_weight} ${word_lowercase:+--word_lowercase} ${read_word2vec_inText:+--read_input_word2vec ${read_word2vec_inText}} ${fix_word2vec_inText:+--fix_input_word2vec} ${word_digit_features:+--word_digit_features}
