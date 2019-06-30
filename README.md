@@ -102,7 +102,7 @@
     | [Atten.-BiRNN](Liu and Lane, 2016) | 98.21 | 95.98 |
     | [Enc-dec focus](Zhu and Yu, 2017) | - | 95.79 |
     | [Slot-Gated](Goo et al., 2018) | 94.1 | 95.2 |
-    | [Intent Gating & self-attention](https://www.aclweb.org/anthology/D18-1417) | 98.77 | 96.52 |
+    | [Intent Gating & self-attention](https://www.aclweb.org/anthology/D18-1417) | 98.77 | **96.52** |
     | [BLSTM-CRF + ELMo](https://arxiv.org/abs/1811.05370) | 97.42 | 95.62 |
     | [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf) | 97.5 | 96.1 |
     | [Joint BERT + CRF](https://arxiv.org/pdf/1902.10909.pdf) | 97.9 | 96.0 |
@@ -112,7 +112,7 @@
     | BLSTM (B. +ELMo) | 98.66 | 95.52 |
     | BLSTM-CRF (B. +ELMo) | 98.32 | 95.62 |
     | Enc-dec focus (B. +ELMo) | 98.66 | 95.70 |
-    | BLSTM (C. +BERT) | 99.10 | 95.94 |
+    | BLSTM (C. +BERT) | **99.10** | 95.94 |
  
  2. Results of SNIPS:
    
@@ -121,7 +121,7 @@
     | models | intent Acc (%) | slot F1-score (%) |
     |:------:|------|-------|
     | [Slot-Gated](Goo et al., 2018) | 97.0 | 88.8 |
-    | [BLSTM-CRF + ELMo](https://arxiv.org/abs/1811.05370) | 99.29 | 93.90 |
+    | [BLSTM-CRF + ELMo](https://arxiv.org/abs/1811.05370) | **99.29** | 93.90 |
     | [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf) | 98.6 | 97.0 |
     | [Joint BERT + CRF](https://arxiv.org/pdf/1902.10909.pdf) | 98.4 | 96.7 |
     | BLSTM (A. Pre-train word emb.) | 99.14 | 95.75 |
@@ -132,7 +132,7 @@
     | Enc-dec focus (B. +ELMo) | 99.14 | 96.69 |
     | BLSTM (C. +BERT) | 98.86 | 96.92 |
     | BLSTM-CRF (C. +BERT) | 98.86 | 97.00 | 
-    | Enc-dec focus (C. +BERT) | 98.71 | 97.17 | 
+    | Enc-dec focus (C. +BERT) | 98.71 | **97.17** | 
 
 ## Reference
  * Su Zhu and Kai Yu, "Encoder-decoder with focus-mechanism for sequence labelling based spoken language understanding," in IEEE International Conference on Acoustics, Speech and Signal Processing(ICASSP), 2017, pp. 5675-5679.
