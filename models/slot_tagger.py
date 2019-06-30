@@ -6,7 +6,7 @@ import torch.nn.utils.rnn as rnn_utils
 
 class LSTMTagger(nn.Module):
     
-    def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None, elmo_model=None, bert_model=None):
+    def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None, elmo_model=None, bert_model=None, fix_bert_model=False):
         """Initialize model."""
         super(LSTMTagger, self).__init__()
         self.embedding_dim = embedding_dim
@@ -25,6 +25,14 @@ class LSTMTagger(nn.Module):
         
         self.elmo_model = elmo_model
         self.bert_model = bert_model
+        self.fix_bert_model = fix_bert_model
+        if self.fix_bert_model:
+            self.number_of_last_hiddens_of_bert = 4
+            self.weighted_scores_of_last_hiddens = nn.Linear(self.number_of_last_hiddens_of_bert, 1, bias=False)
+            for weight in self.bert_model.parameters():
+                weight.requires_grad = False
+        else:
+            self.number_of_last_hiddens_of_bert = 1
         if self.elmo_model and self.bert_model:
             self.embedding_dim = self.elmo_model.get_output_dim() + self.bert_model.config.hidden_size
         elif self.elmo_model:
@@ -56,6 +64,8 @@ class LSTMTagger(nn.Module):
             self.word_embeddings.weight.data.uniform_(-initrange, initrange)
         #for pad_token_idx in self.pad_token_idxs:
         #    self.word_embeddings.weight.data[pad_token_idx].zero_()
+        if self.fix_bert_model:
+            self.weighted_scores_of_last_hiddens.weight.data.uniform_(-initrange, initrange)
         if self.extFeats_linear:
             self.extFeats_linear.weight.data.uniform_(-initrange, initrange)
             self.extFeats_linear.bias.data.uniform_(-initrange, initrange)
@@ -70,7 +80,12 @@ class LSTMTagger(nn.Module):
             elmo_embeds = self.elmo_model(sentences['elmo'])
             elmo_embeds = elmo_embeds['elmo_representations'][0]
             tokens, segments, selects, copies, attention_mask = sentences['bert']['tokens'], sentences['bert']['segments'], sentences['bert']['selects'], sentences['bert']['copies'], sentences['bert']['mask']
-            bert_top_hiddens, _ = self.bert_model(tokens, segments, attention_mask, output_all_encoded_layers=False)
+            bert_all_hiddens, _ = self.bert_model(tokens, segments, attention_mask)
+            if self.fix_bert_model:
+                used_hiddens = torch.cat([hiddens.unsqueeze(3) for hiddens in bert_all_hiddens[- self.number_of_last_hiddens_of_bert:]], dim=-1)
+                bert_top_hiddens = self.weighted_scores_of_last_hiddens(used_hiddens).squeeze(3)
+            else:
+                bert_top_hiddens = bert_all_hiddens[-1]
             batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
             chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
             bert_embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
@@ -81,7 +96,12 @@ class LSTMTagger(nn.Module):
             embeds = elmo_embeds['elmo_representations'][0]
         elif self.bert_model:
             tokens, segments, selects, copies, attention_mask = sentences['tokens'], sentences['segments'], sentences['selects'], sentences['copies'], sentences['mask']
-            bert_top_hiddens, _ = self.bert_model(tokens, segments, attention_mask, output_all_encoded_layers=False)
+            bert_all_hiddens, _ = self.bert_model(tokens, segments, attention_mask)
+            if self.fix_bert_model:
+                used_hiddens = torch.cat([hiddens.unsqueeze(3) for hiddens in bert_all_hiddens[- self.number_of_last_hiddens_of_bert:]], dim=-1)
+                bert_top_hiddens = self.weighted_scores_of_last_hiddens(used_hiddens).squeeze(3)
+            else:
+                bert_top_hiddens = bert_all_hiddens[-1]
             batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
             chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
             embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)

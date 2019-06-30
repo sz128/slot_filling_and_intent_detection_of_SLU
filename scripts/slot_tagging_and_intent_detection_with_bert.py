@@ -48,6 +48,7 @@ parser.add_argument('--read_vocab', required=False, help='Online test: read inpu
 parser.add_argument('--out_path', required=False, help='Online test: out_path')
 
 parser.add_argument('--bert_model_name', required=True, help='bert-base-uncased, bert-base-cased, bert-large-uncased, bert-large-cased, bert-base-multilingual-cased, bert-base-chinese')
+parser.add_argument('--fix_bert_model', action='store_true', help='fix bert model')
 
 #parser.add_argument('--emb_size', type=int, default=100, help='word embedding dimension')
 parser.add_argument('--tag_emb_size', type=int, default=100, help='tag embedding dimension')
@@ -64,10 +65,10 @@ parser.add_argument('--dropout', type=float, default=0., help='dropout rate at e
 parser.add_argument('--batchSize', type=int, default=64, help='input batch size')
 parser.add_argument('--test_batchSize', type=int, default=0, help='input batch size in decoding')
 parser.add_argument('--init_weight', type=float, default=0.2, help='all weights will be set to [-init_weight, init_weight] during initialization')
-#parser.add_argument('--max_norm', type=float, default=5, help="threshold of gradient clipping (2-norm)")
+parser.add_argument('--max_norm', type=float, default=5, help="threshold of gradient clipping (2-norm)")
 parser.add_argument('--max_epoch', type=int, default=50, help='max number of epochs to train for')
 parser.add_argument('--experiment', default='exp', help='Where to store samples and models')
-#parser.add_argument('--optim', default='sgd', help='choose an optimizer')
+parser.add_argument('--optim', default='sgd', help='choose an optimizer')
 parser.add_argument('--warmup_proportion', type=float, default=0.1, help='Proportion of training to perform linear learning rate warmup for. E.g., 0.1 = 10%% of training.')
 
 opt = parser.parse_args()
@@ -106,6 +107,8 @@ if not opt.testing:
     if opt.task_sc:
         exp_path += '__alpha_%s' % (opt.st_weight)
     exp_path += '__bert_%s' % (opt.bert_model_name)
+    if opt.fix_bert_model:
+        exp_path += '_fixed'
 else:
     exp_path = opt.out_path
 if not os.path.exists(exp_path):
@@ -185,11 +188,11 @@ else:
 model_bert = BertModel.from_pretrained(opt.bert_model_name)
 opt.emb_size = None
 if opt.task_st == 'slot_tagger':
-    model_tag = slot_tagger.LSTMTagger(opt.emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, bert_model=model_bert)
+    model_tag = slot_tagger.LSTMTagger(opt.emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, bert_model=model_bert, fix_bert_model=opt.fix_bert_model)
 elif opt.task_st == 'slot_tagger_with_focus':
-    model_tag = slot_tagger_with_focus.LSTMTagger_focus(opt.emb_size, opt.tag_emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, bert_model=model_bert)
+    model_tag = slot_tagger_with_focus.LSTMTagger_focus(opt.emb_size, opt.tag_emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, bert_model=model_bert, fix_bert_model=opt.fix_bert_model)
 elif opt.task_st == 'slot_tagger_with_crf':
-    model_tag = slot_tagger_with_crf.LSTMTagger_CRF(opt.emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, bert_model=model_bert)
+    model_tag = slot_tagger_with_crf.LSTMTagger_CRF(opt.emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, bert_model=model_bert, fix_bert_model=opt.fix_bert_model)
 else:
     exit()
 
@@ -235,23 +238,30 @@ if opt.task_sc:
         class_loss_function = nn.NLLLoss(size_average=False)
 
 # optimizer
-params = []
-params += list(model_tag.named_parameters())
-if opt.task_sc:
-    params += list(model_class.named_parameters())
-params = filter(lambda p: p[1].requires_grad, params)
-
-param_optimizer = params
-no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
-optimizer_grouped_parameters = [
-	{'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-	{'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-	]
-num_train_optimization_steps = len(train_feats['data']) // opt.batchSize * opt.max_epoch
-optimizer = BertAdam(optimizer_grouped_parameters,
-					 lr=opt.lr,
-					 warmup=opt.warmup_proportion,
-					 t_total=num_train_optimization_steps)
+if opt.optim.lower() == 'adam':
+    params = []
+    params += list(model_tag.parameters())
+    if opt.task_sc:
+        params += list(model_class.parameters())
+    params = filter(lambda p: p.requires_grad, params)
+    optimizer = optim.Adam(params, lr=opt.lr, betas=(0.9, 0.999), eps=1e-8, weight_decay=0) # (beta1, beta2)
+elif opt.optim.lower() == 'bertadam':
+    params = []
+    params += list(model_tag.named_parameters())
+    if opt.task_sc:
+        params += list(model_class.named_parameters())
+    params = filter(lambda p: p[1].requires_grad, params)
+    param_optimizer = params
+    no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+    optimizer_grouped_parameters = [
+        {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+        {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+        ]
+    num_train_optimization_steps = len(train_feats['data']) // opt.batchSize * opt.max_epoch
+    optimizer = BertAdam(optimizer_grouped_parameters,
+                         lr=opt.lr,
+                         warmup=opt.warmup_proportion,
+                         t_total=num_train_optimization_steps)
 
 def prepare_inputs_for_bert(sentences, word_lengths):
     ## sentences are sorted by sentence length
@@ -406,6 +416,8 @@ if not opt.testing:
         # training data shuffle
         np.random.shuffle(train_data_index)
         model_tag.train()
+        if opt.fix_bert_model:
+            model_tag.bert_model.eval()
         if opt.task_sc:
             model_class.train()
         
@@ -437,6 +449,10 @@ if not opt.testing:
                 total_loss = tag_loss
             total_loss.backward()
             
+            # Clips gradient norm of an iterable of parameters.
+            if opt.optim.lower() != 'bertadam' and opt.max_norm > 0:
+                torch.nn.utils.clip_grad_norm_(params, opt.max_norm)
+
             optimizer.step()
 
             if j % piece_sentences == 0:
