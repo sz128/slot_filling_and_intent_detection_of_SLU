@@ -115,6 +115,8 @@
     | BLSTM (C. +BERT) | 99.10 | 95.94 |
  
  2. Results of SNIPS:
+   
+  * Cased BERT-base model gives better result than uncased model.
     
     | models | intent Acc (%) | slot F1-score (%) |
     |:------:|------|-------|
@@ -128,7 +130,7 @@
     | BLSTM (B. +ELMo) | 98.71 | 96.32 |
     | BLSTM-CRF (B. +ELMo) | 98.57 | 96.61 |
     | Enc-dec focus (B. +ELMo) | 99.14 | 96.69 |
-    | BLSTM (C. +BERT) | 99.00 | 96.23 | 
+    | BLSTM (C. +BERT) | 98.86 | 96.92 | 
 
 ## Reference
  * Su Zhu and Kai Yu, "Encoder-decoder with focus-mechanism for sequence labelling based spoken language understanding," in IEEE International Conference on Acoustics, Speech and Signal Processing(ICASSP), 2017, pp. 5675-5679.
