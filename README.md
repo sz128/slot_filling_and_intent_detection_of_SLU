@@ -130,7 +130,8 @@
     | BLSTM (B. +ELMo) | 98.71 | 96.32 |
     | BLSTM-CRF (B. +ELMo) | 98.57 | 96.61 |
     | Enc-dec focus (B. +ELMo) | 99.14 | 96.69 |
-    | BLSTM (C. +BERT) | 98.86 | 96.92 | 
+    | BLSTM (C. +BERT) | 98.86 | 96.92 |
+    | BLSTM-CRF (C. +BERT) | 98.86 | 97.00 | 
 
 ## Reference
  * Su Zhu and Kai Yu, "Encoder-decoder with focus-mechanism for sequence labelling based spoken language understanding," in IEEE International Conference on Acoustics, Speech and Signal Processing(ICASSP), 2017, pp. 5675-5679.
