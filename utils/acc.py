@@ -40,45 +40,50 @@ def get_chunks(labels):
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--infile', required=True, help='path to dataset')
-    parser.add_argument('-l', '--labfile', required=True, help='path to dataset')
     parser.add_argument('-p', '--print_log', action='store_true', help='print log')
     opt = parser.parse_args()
 
-    pred_lines = {}
-    idx = 0
-    for line in open(opt.infile):
-        line = line.strip('\n\r')
-        if ' : ' in line:
-            idx_str, line = line.split(' : ')
-            pred_lines[int(idx_str)] = line
-        else:
-            pred_lines[idx] = line
-        idx += 1
-    lab_lines = {}
-    idx = 0
-    for line in open(opt.labfile):
-        line = line.strip('\n\r')
-        if ' : ' in line:
-            idx_str, line = line.split(' : ')
-            lab_lines[int(idx_str)] = line
-        else:
-            lab_lines[idx] = line
-        idx += 1
-    assert len(pred_lines) == len(lab_lines)
+    file = open(opt.infile)
 
     TP, FP, FN, TN = 0.0, 0.0, 0.0, 0.0
+    TP2, FP2, FN2, TN2 = 0.0, 0.0, 0.0, 0.0
+    right, All = 0.0, 0.0
     all_slots = {}
-    for idx in pred_lines:
-        lab_line, pred_line = lab_lines[idx], pred_lines[idx]
-        lab_ali = lab_line.split(' <=> ')[0]
-        pred_ali = pred_line.split(' <=> ')[0]
+    for line in file:
+        line = line.strip('\n\r')
+        if ' : ' in line:
+            line_num, line = line.split(' : ')
+        tmps = line.split(' <=> ')
+        if len(tmps) > 1:
+            line, intent_label, intent_pred = tmps
+            intent_label_items = intent_label.split(';') if intent_label != '' else []
+            intent_pred_items = intent_pred.split(';') if intent_pred != '' else []
+            local_right = 0
+            for pred_intent in intent_pred_items:
+                if pred_intent in intent_label_items:
+                    TP2 += 1
+                    local_right += 1
+                else:
+                    FP2 += 1
+            for label_intent in intent_label_items:
+                if label_intent not in intent_pred_items:
+                    FN2 += 1
+            right += int(local_right > 0)
+            All += 1
+        else:
+            line = tmps[0]
 
-        # slot tag
-        words = [item.split(':')[0] for item in lab_ali.split(' ')]
-        labels = [item.split(':', 1)[1] for item in lab_ali.split(' ')]
-        preds = [item.split(':', 1)[1] for item in pred_ali.split(' ')]
+        words, labels, preds = [], [], []
+        items = line.split(' ')
+        for item in items:
+            parts = item.split(':')
+            word, label, pred = ':'.join(parts[:-2]), parts[-2], parts[-1]
+            words.append(word)
+            labels.append(label)
+            preds.append(pred)
         label_chunks = get_chunks(['O']+labels+['O'])
         pred_chunks = get_chunks(['O']+preds+['O'])
+        failed = False
         for pred_chunk in pred_chunks:
             if pred_chunk[-1] not in all_slots:
                 all_slots[pred_chunk[-1]] = {'TP':0.0, 'FP':0.0, 'FN':0.0, 'TN':0.0}
@@ -88,24 +93,36 @@ if __name__=='__main__':
             else:
                 FP += 1
                 all_slots[pred_chunk[-1]]['FP'] += 1
+                failed = True
         for label_chunk in label_chunks:
             if label_chunk[-1] not in all_slots:
                 all_slots[label_chunk[-1]] = {'TP':0.0, 'FP':0.0, 'FN':0.0, 'TN':0.0}
             if label_chunk not in pred_chunks:
                 FN += 1
                 all_slots[label_chunk[-1]]['FN'] += 1
-        
+                failed = True
+        if failed and opt.print_log:
+            print(' '.join([word if label == 'O' else word+':'+label for word, label in zip(words, labels)]))
+            print(' '.join([word if pred == 'O' else word+':'+pred for word, pred in zip(words, preds)]))
+            print('-'*20)
+
     if TP == 0:
-        print('all slot', int(TP), int(FP), int(FN), 0, 0, 0)
+        print('all', int(TP), int(FN), int(FP), 0, 0, 0)
     else:
-        print('all slot', int(TP), int(FP), int(FN), round(100*TP/(TP+FP), 2), round(100*TP/(TP+FN), 2), round(100*2*TP/(2*TP+FN+FP), 2))
-
-    for slot in all_slots:
+        print('all', int(TP), int(FN), int(FP), round(100*TP/(TP+FP), 2), round(100*TP/(TP+FN), 2), round(100*2*TP/(2*TP+FN+FP), 2))
+    if TP2 != 0:
+        print('all intent', int(TP2), int(FN2), int(FP2), round(100*TP2/(TP2+FP2), 2), round(100*TP2/(TP2+FN2), 2), round(100*2*TP2/(2*TP2+FN2+FP2), 2))
+        print(right/All)
+    
+    all_F1 = []
+    for slot,_ in sorted(all_slots.items(), key=lambda kv:(kv[1]['FN']+kv[1]['TP'], kv[0]), reverse=True):
         TP = all_slots[slot]['TP']
-        FP = all_slots[slot]['FP']
         FN = all_slots[slot]['FN']
+        FP = all_slots[slot]['FP']
         if TP == 0:
-            print(slot, int(TP), int(FP), int(FN), 0, 0, 0)
+            print(slot, int(TP), int(FN), int(FP), 0, 0, 0)
+            all_F1.append(0)
         else:
-            print(slot, int(TP), int(FP), int(FN), round(100*TP/(TP+FP), 2), round(100*TP/(TP+FN), 2), round(100*2*TP/(2*TP+FN+FP), 2))
-
+            print(slot, int(TP), int(FN), int(FP), round(100*TP/(TP+FP), 2), round(100*TP/(TP+FN), 2), round(100*2*TP/(2*TP+FN+FP), 2))
+            all_F1.append(100*2*TP/(2*TP+FN+FP))
+    print("F1 ave. of slot count is", sum(all_F1)/len(all_F1))

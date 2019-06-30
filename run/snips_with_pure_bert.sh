@@ -6,7 +6,7 @@ task_slot_filling=$1 # NN, NN_crf
 task_intent_detection=$2 # CLS, max, CLS_max
 balance_weight=0.5
 
-bert_model_name=bert-base-uncased #bert-large-uncased-whole-word-masking #bert-base-uncased
+bert_model_name=bert-base-cased #bert-base-uncased #bert-large-uncased-whole-word-masking #bert-base-uncased
 
 dataroot=data/snips
 dataset=snips

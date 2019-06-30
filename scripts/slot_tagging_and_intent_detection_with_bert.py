@@ -68,7 +68,7 @@ parser.add_argument('--init_weight', type=float, default=0.2, help='all weights 
 parser.add_argument('--max_norm', type=float, default=5, help="threshold of gradient clipping (2-norm)")
 parser.add_argument('--max_epoch', type=int, default=50, help='max number of epochs to train for')
 parser.add_argument('--experiment', default='exp', help='Where to store samples and models')
-parser.add_argument('--optim', default='sgd', help='choose an optimizer')
+parser.add_argument('--optim', default='bertadam', help='choose an optimizer')
 parser.add_argument('--warmup_proportion', type=float, default=0.1, help='Proportion of training to perform linear learning rate warmup for. E.g., 0.1 = 10%% of training.')
 
 opt = parser.parse_args()
