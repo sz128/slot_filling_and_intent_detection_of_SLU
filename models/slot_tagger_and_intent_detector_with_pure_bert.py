@@ -98,7 +98,7 @@ class BERT_joint_slot_and_intent(nn.Module):
     def crf_neg_log_likelihood(self, tag_scores, masks, tags):
         return self.crf_layer.neg_log_likelihood_loss(tag_scores, masks, tags)
 
-    def crf_viterbi_decode(tag_scores, masks):
+    def crf_viterbi_decode(self, tag_scores, masks):
         path_score, best_path = self.crf_layer._viterbi_decode(tag_scores, masks)
         return path_score, best_path
     
