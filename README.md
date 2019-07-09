@@ -4,7 +4,7 @@
    * An implementation of BLSTM-CRF based on [jiesutd/NCRFpp](https://github.com/jiesutd/NCRFpp/blob/master/model/crf.py)
    * An implementation of joint training of slot filling and intent detection tasks [(Bing Liu and Ian Lane, 2016)](https://arxiv.org/abs/1609.01454).
  * Basic models + [ELMo](https://arxiv.org/abs/1802.05365) / [BERT](https://github.com/huggingface/pytorch-pretrained-BERT)
- * Tutorials on [ATIS](https://github.com/yvchen/JointSLU) and [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines) datasets.
+ * Tutorials on [ATIS](https://github.com/yvchen/JointSLU), [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines) and [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent) datasets.
  
  <img src="./figs/data_annotation_ATIS.png" width="750" alt="data annotation"/>
 
@@ -31,6 +31,9 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    python3 scripts/get_ELMo_word_embedding_for_a_dataset.py \
            --in_files data/snips/{train,valid,test} \
            --output_word2vec local/word_embeddings/elmo_1024_cased_for_snips.txt
+   python3 scripts/get_ELMo_word_embedding_for_a_dataset.py \
+           --in_files data/MIT_corpus/{movie_eng,movie_trivia10k13,restaurant}/{train,valid,test} \
+           --output_word2vec local/word_embeddings/elmo_1024_cased_for_MIT_corpus.txt
 ```
 
  2. Run scripts of training and evaluation at each epoch.
@@ -144,6 +147,17 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | BLSTM (C. +BERT) | 98.86 | 96.92 |
     | BLSTM-CRF (C. +BERT) | 98.86 | 97.00 | 
     | Enc-dec focus (C. +BERT) | 98.71 | **97.17** | 
+    
+ 3. Slot F1-scores of [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent):
+    
+    | models | Restaurant | Movie_eng | Movie_trivia10k13 |
+    |:------:|------|-------|-------|
+    | [Dom-Gen-Adv](https://arxiv.org/pdf/1711.11310.pdf) | 74.25 | 83.03 | 63.51 |
+    | [Joint Dom Spec & Gen-Adv](https://arxiv.org/pdf/1711.11310.pdf) | 74.47 | 85.33 | 65.33 |
+    | [Data Augmentation via Joint Variational Generation](https://arxiv.org/pdf/1809.02305.pdf) | 73.0 | 82.9 | 65.7 |
+    | BLSTM (A. Pre-train word emb.) | 77.54 | 85.37 | 67.97 |
+    | BLSTM-CRF (A. Pre-train word emb.) | 79.77 | 87.36 | 71.83 |
+    | Enc-dec focus (A. Pre-train word emb.) | 78.77 | 86.68 | 70.85 |
 
 ## Reference
  * Su Zhu and Kai Yu, "Encoder-decoder with focus-mechanism for sequence labelling based spoken language understanding," in IEEE International Conference on Acoustics, Speech and Signal Processing(ICASSP), 2017, pp. 5675-5679.
