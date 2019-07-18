@@ -13,8 +13,11 @@ install_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(_
 sys.path.append(install_path)
 
 import itertools
-from pytorch_pretrained_bert import BertTokenizer, BertModel
-from pytorch_pretrained_bert.optimization import BertAdam, WarmupLinearSchedule
+#from pytorch_pretrained_bert import BertTokenizer, BertModel
+#from pytorch_pretrained_bert.optimization import BertAdam, WarmupLinearSchedule
+from pytorch_transformers import BertTokenizer, BertModel
+from pytorch_transformers.optimization import AdamW, WarmupLinearSchedule
+from models.optimization import BertAdam
 
 from allennlp.modules.elmo import Elmo, batch_to_ids
 
@@ -68,10 +71,10 @@ parser.add_argument('--dropout', type=float, default=0., help='dropout rate at e
 parser.add_argument('--batchSize', type=int, default=64, help='input batch size')
 parser.add_argument('--test_batchSize', type=int, default=0, help='input batch size in decoding')
 parser.add_argument('--init_weight', type=float, default=0.2, help='all weights will be set to [-init_weight, init_weight] during initialization')
-#parser.add_argument('--max_norm', type=float, default=5, help="threshold of gradient clipping (2-norm)")
+parser.add_argument('--max_norm', type=float, default=5, help="threshold of gradient clipping (2-norm)")
 parser.add_argument('--max_epoch', type=int, default=50, help='max number of epochs to train for')
 parser.add_argument('--experiment', default='exp', help='Where to store samples and models')
-#parser.add_argument('--optim', default='bertadam', help='choose an optimizer')
+parser.add_argument('--optim', default='bertadam', help='choose an optimizer')
 parser.add_argument('--warmup_proportion', type=float, default=0.1, help='Proportion of training to perform linear learning rate warmup for. E.g., 0.1 = 10%% of training.')
 
 opt = parser.parse_args()
@@ -187,6 +190,7 @@ else:
     test_feats, test_tags, test_class = data_reader.read_seqtag_data_with_class(test_data_dir, tag_to_idx, class_to_idx, multiClass=opt.multiClass, keep_order=opt.testing, lowercase=opt.word_lowercase)
 
 model_bert = BertModel.from_pretrained(opt.bert_model_name)
+print(model_bert.config)
 model_elmo = Elmo(opt.elmo_json, opt.elmo_weight, 1, dropout=0)
 opt.emb_size = None
 if opt.task_st == 'slot_tagger':
@@ -240,23 +244,38 @@ if opt.task_sc:
         class_loss_function = nn.NLLLoss(size_average=False)
 
 # optimizer
-params = []
-params += list(model_tag.named_parameters())
-if opt.task_sc:
-    params += list(model_class.named_parameters())
-params = filter(lambda p: p[1].requires_grad, params)
-
-param_optimizer = params
-no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
-optimizer_grouped_parameters = [
-	{'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-	{'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-	]
-num_train_optimization_steps = len(train_feats['data']) // opt.batchSize * opt.max_epoch
-optimizer = BertAdam(optimizer_grouped_parameters,
-					 lr=opt.lr,
-					 warmup=opt.warmup_proportion,
-					 t_total=num_train_optimization_steps)
+if opt.optim.lower() == 'bertadam':
+    named_params = []
+    named_params += list(model_tag.named_parameters())
+    if opt.task_sc:
+        named_params += list(model_class.named_parameters())
+    named_params = filter(lambda p: p[1].requires_grad, named_params)
+    no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+    optimizer_grouped_parameters = [
+        {'params': [p for n, p in named_params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+        {'params': [p for n, p in named_params if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+        ]
+    num_train_optimization_steps = len(train_feats['data']) // opt.batchSize * opt.max_epoch
+    optimizer = BertAdam(optimizer_grouped_parameters, lr=opt.lr, warmup=opt.warmup_proportion, t_total=num_train_optimization_steps)
+elif opt.optim.lower() == 'adamw':
+    params = []
+    params += list(model_tag.parameters())
+    if opt.task_sc:
+        params += list(model_class.parameters())
+    params = filter(lambda p: p.requires_grad, params)
+    named_params = []
+    named_params += list(model_tag.named_parameters())
+    if opt.task_sc:
+        named_params += list(model_class.named_parameters())
+    named_params = filter(lambda p: p[1].requires_grad, named_params)
+    no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+    optimizer_grouped_parameters = [
+        {'params': [p for n, p in named_params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+        {'params': [p for n, p in named_params if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+        ]
+    num_train_optimization_steps = len(train_feats['data']) // opt.batchSize * opt.max_epoch
+    optimizer = AdamW(optimizer_grouped_parameters, lr=opt.lr, correct_bias=False)  # To reproduce BertAdam specific behavior set correct_bias=False
+    scheduler = WarmupLinearSchedule(optimizer, warmup_steps=int(opt.warmup_proportion * num_train_optimization_steps), t_total=num_train_optimization_steps)  # PyTorch scheduler
 
 def prepare_inputs_for_bert(sentences, word_lengths):
     ## sentences are sorted by sentence length
@@ -446,6 +465,12 @@ if not opt.testing:
                 total_loss = tag_loss
             total_loss.backward()
             
+            # Clips gradient norm of an iterable of parameters.
+            if opt.optim.lower() != 'bertadam' and opt.max_norm > 0:
+                torch.nn.utils.clip_grad_norm_(params, opt.max_norm)
+            
+            if opt.optim.lower() == 'adamw':
+                scheduler.step()
             optimizer.step()
 
             if j % piece_sentences == 0:

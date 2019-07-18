@@ -59,7 +59,8 @@ class BERT_joint_slot_and_intent(nn.Module):
     def forward(self, sentences, lengths, extFeats=None, masked_output=None):
         # step 1: word embedding
         tokens, segments, selects, copies, attention_mask = sentences['tokens'], sentences['segments'], sentences['selects'], sentences['copies'], sentences['mask']
-        bert_top_hiddens, bert_cls_hidden = self.bert_model(tokens, segments, attention_mask, output_all_encoded_layers=False)
+        outputs = self.bert_model(tokens, token_type_ids=segments, attention_mask=attention_mask)
+        bert_top_hiddens, bert_cls_hidden = outputs[0:2]
         batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
         chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
         embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)

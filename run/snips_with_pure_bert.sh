@@ -13,9 +13,9 @@ dataset=snips
 
 batch_size=32 # 16, 32
 
-optimizer=bertAdam #bertAdam, adam, sgd
+optimizer=bertadam #bertadam, adamw, adam, sgd
 learning_rate=5e-5 # 1e-5, 5e-5, 1e-4, 1e-3
-max_norm_of_gradient_clip=5
+max_norm_of_gradient_clip=1 # working for adamw, adam, sgd
 dropout_rate=0.1 # 0.1, 0.5
 
 max_epoch=30
