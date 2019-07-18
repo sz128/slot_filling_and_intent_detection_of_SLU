@@ -9,8 +9,8 @@
  <img src="./figs/data_annotation_ATIS.png" width="750" alt="data annotation"/>
 
 ## Setup
- * pytorch 1.0
  * python 3.6.x
+ * [pytorch](https://pytorch.org/) 1.0
  * pip install gpustat     [if gpu is used]
  * [ELMo in allennlp](https://github.com/allenai/allennlp): pip install allennlp
  * [BERT/XLNET in pytorch-transformers](https://github.com/huggingface/pytorch-transformers): pip install pytorch-transformers
