@@ -12,7 +12,8 @@
  * pytorch 1.0
  * python 3.6.x
  * pip install gpustat     [if gpu is used]
- * pip install pytorch_pretrained_bert
+ * [ELMo in allennlp](https://github.com/allenai/allennlp): pip install allennlp
+ * pip install pytorch_pretrained_bert  # Notice: Pytorch_pretrained_bert is changed to pytorch-transformers recently. We will migrate from pytorch-pretrained-bert to pytorch-transformers in few days.
  
 ## About the evaluations of intent detection on ATIS and SNIPS datasets.
 
