@@ -102,6 +102,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    bash run/atis_with_bert.sh slot_tagger_with_focus
    bash run/snips_with_bert.sh slot_tagger_with_focus
    ```
+ 2. For optimizer, you can try BertAdam and AdamW. In my experiments, I choose to use BertAdam.
 
 ## Tutorials C: Slot filling and intent detection with [XLNET](https://github.com/zihangdai/xlnet) [ToDo]
 
