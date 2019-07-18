@@ -3,7 +3,7 @@
    * An implementation for "focus" part of the paper "Encoder-decoder with focus-mechanism for sequence labelling based spoken language understanding".
    * An implementation of BLSTM-CRF based on [jiesutd/NCRFpp](https://github.com/jiesutd/NCRFpp/blob/master/model/crf.py)
    * An implementation of joint training of slot filling and intent detection tasks [(Bing Liu and Ian Lane, 2016)](https://arxiv.org/abs/1609.01454).
- * Basic models + [ELMo](https://arxiv.org/abs/1802.05365) / [BERT](https://github.com/huggingface/pytorch-pretrained-BERT)
+ * Basic models + [ELMo](https://arxiv.org/abs/1802.05365) / [BERT](https://github.com/google-research/bert) / [XLNET](https://github.com/zihangdai/xlnet)
  * Tutorials on [ATIS](https://github.com/yvchen/JointSLU), [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines) and [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent) datasets.
  
  <img src="./figs/data_annotation_ATIS.png" width="750" alt="data annotation"/>
@@ -13,7 +13,7 @@
  * python 3.6.x
  * pip install gpustat     [if gpu is used]
  * [ELMo in allennlp](https://github.com/allenai/allennlp): pip install allennlp
- * [pytorch-transformers](https://github.com/huggingface/pytorch-transformers): pip install pytorch-transformers
+ * [BERT/XLNET in pytorch-transformers](https://github.com/huggingface/pytorch-transformers): pip install pytorch-transformers
  
 ## About the evaluations of intent detection on ATIS and SNIPS datasets.
 
@@ -74,7 +74,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    bash run/snips_with_elmo.sh slot_tagger_with_focus
    ```
 
-## Tutorials C: Slot filling and intent detection with [BERT](https://github.com/huggingface/pytorch-pretrained-BERT)
+## Tutorials C: Slot filling and intent detection with [BERT](https://github.com/google-research/bert)
  
  0. Model architectures:
    
