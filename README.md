@@ -137,6 +137,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | BLSTM-CRF (B. +ELMo) | 98.32 | 95.62 |
     | Enc-dec focus (B. +ELMo) | 98.66 | 95.70 |
     | BLSTM (C. +BERT) | **99.10** | 95.94 | (hidden_size=100, dropout=0.5, lr=1e-4)
+    | BLSTM (D. +XLNET) | 98.77 | 96.08 |
  
  2. Results of SNIPS:
    
@@ -157,6 +158,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | BLSTM (C. +BERT) | 98.86 | 96.92 |
     | BLSTM-CRF (C. +BERT) | 98.86 | 97.00 | 
     | Enc-dec focus (C. +BERT) | 98.71 | **97.17** | 
+    | BLSTM (D. +XLNET) | 98.86 | 97.05 |
     
  3. Slot F1-scores of [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent):
     
