@@ -58,27 +58,18 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
 ## Tutorials B: Slot filling and intent detection with [ELMo](https://arxiv.org/abs/1802.05365)
  
  1. Run scripts of training and evaluation at each epoch.
-   * BLSTM model: 
+   * ELMo + BLSTM/BLSTM-CRF/Enc-dec focus model (BLSTM-LSTM) models:  
    ```sh
-   bash run/atis_with_elmo.sh slot_tagger
-   bash run/snips_with_elmo.sh slot_tagger
-   ```
-   * BLSTM-CRF model: 
-   ```sh
-   bash run/atis_with_elmo.sh slot_tagger_with_crf
-   bash run/snips_with_elmo.sh slot_tagger_with_crf
-   ```
-   * Enc-dec focus model (BLSTM-LSTM), the same as Encoder-Decoder NN (with aligned inputs)(Liu and Lane, 2016): 
-   ```sh
-   bash run/atis_with_elmo.sh slot_tagger_with_focus
-   bash run/snips_with_elmo.sh slot_tagger_with_focus
+   slot_intent_model=slot_tagger # slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
+   bash run/atis_with_elmo.sh ${slot_intent_model}
+   bash run/snips_with_elmo.sh ${slot_intent_model}
    ```
 
 ## Tutorials C: Slot filling and intent detection with [BERT](https://github.com/google-research/bert)
  
  0. Model architectures:
    
-   * [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf) or "with pure bert":
+   * [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf) or "with **pure BERT**":
    
    <img src="./figs/bert_SLU_simple.png" width="400" alt="bert_SLU_simple"/>
    
@@ -87,24 +78,40 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    <img src="./figs/bert_SLU_complex.png" width="400" alt="bert_SLU_complex"/>
 
  1. Run scripts of training and evaluation at each epoch.
-   * BLSTM model: 
+   * Pure BERT (withou or with crf) model: 
    ```sh
-   bash run/atis_with_bert.sh slot_tagger
-   bash run/snips_with_bert.sh slot_tagger
+   slot_model=NN # NN, NN_crf
+   intent_input=CLS # none, CLS, max, CLS_max
+   bash run/atis_with_pure_bert.sh ${slot_model} ${intent_input}
+   bash run/snips_with_pure_bert.sh ${slot_model} ${intent_input}
    ```
-   * BLSTM-CRF model: 
+   * BERT + BLSTM/BLSTM-CRF/Enc-dec focus model (BLSTM-LSTM) models: 
    ```sh
-   bash run/atis_with_bert.sh slot_tagger_with_crf
-   bash run/snips_with_bert.sh slot_tagger_with_crf
+   slot_intent_model=slot_tagger # slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
+   bash run/atis_with_bert.sh ${slot_intent_model}
+   bash run/snips_with_bert.sh ${slot_intent_model}
    ```
-   * Enc-dec focus model (BLSTM-LSTM), the same as Encoder-Decoder NN (with aligned inputs)(Liu and Lane, 2016): 
-   ```sh
-   bash run/atis_with_bert.sh slot_tagger_with_focus
-   bash run/snips_with_bert.sh slot_tagger_with_focus
-   ```
+
  2. For optimizer, you can try BertAdam and AdamW. In my experiments, I choose to use BertAdam.
 
-## Tutorials C: Slot filling and intent detection with [XLNET](https://github.com/zihangdai/xlnet) [ToDo]
+## Tutorials D: Slot filling and intent detection with [XLNET](https://github.com/zihangdai/xlnet)
+
+ 1. Run scripts of training and evaluation at each epoch.
+   * Pure XLNET (withou or with crf) model: 
+   ```sh
+   slot_model=NN # NN, NN_crf
+   intent_input=CLS # none, CLS, max, CLS_max
+   bash run/atis_with_pure_xlnet.sh ${slot_model} ${intent_input}
+   bash run/snips_with_pure_xlnet.sh ${slot_model} ${intent_input}
+   ```
+   * XLNET + BLSTM/BLSTM-CRF/Enc-dec focus model (BLSTM-LSTM) models: 
+   ```sh
+   slot_intent_model=slot_tagger # slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
+   bash run/atis_with_xlnet.sh ${slot_intent_model}
+   bash run/snips_with_xlnet.sh ${slot_intent_model}
+   ```
+
+ 2. For optimizer, you can try BertAdam and AdamW.
 
 
 ## Results:
