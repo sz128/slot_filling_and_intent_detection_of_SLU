@@ -22,7 +22,7 @@ slot_tag_embedding_size=100  ## for slot_tagger_with_focus
 batch_size=32 # 16, 32
 
 optimizer=bertadam # bertadam, adamw
-learning_rate=1e-5 # 1e-5, 5e-5, 1e-4, 1e-3
+learning_rate=5e-5 # 1e-5, 5e-5, 1e-4, 1e-3
 max_norm_of_gradient_clip=1 # working for adamw
 dropout_rate=0.1 # 0.1, 0.5
 
