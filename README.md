@@ -136,7 +136,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | BLSTM (B. +ELMo) | 98.66 | 95.52 |
     | BLSTM-CRF (B. +ELMo) | 98.32 | 95.62 |
     | Enc-dec focus (B. +ELMo) | 98.66 | 95.70 |
-    | BLSTM (C. +BERT) | **99.10** | 95.94 |
+    | BLSTM (C. +BERT) | **99.10** | 95.94 | (hidden_size=100, dropout=0.5, lr=1e-4)
  
  2. Results of SNIPS:
    
