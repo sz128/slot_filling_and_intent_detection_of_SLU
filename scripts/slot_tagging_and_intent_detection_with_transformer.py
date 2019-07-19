@@ -12,12 +12,12 @@ import gc
 install_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(install_path)
 
-import itertools
 #from pytorch_pretrained_bert import BertTokenizer, BertModel
 #from pytorch_pretrained_bert.optimization import BertAdam, WarmupLinearSchedule
-from pytorch_transformers import BertTokenizer, BertConfig, BertModel
+from pytorch_transformers import BertTokenizer, BertModel, XLNetTokenizer, XLNetModel 
 from pytorch_transformers.optimization import AdamW, WarmupLinearSchedule
 from models.optimization import BertAdam
+from utils.bert_xlnet_inputs import prepare_inputs_for_bert_xlnet
 
 import models.slot_tagger as slot_tagger
 import models.slot_tagger_with_focus as slot_tagger_with_focus
@@ -29,6 +29,11 @@ import utils.data_reader_for_elmo as data_reader
 import utils.read_wordEmb as read_wordEmb
 import utils.util as util
 import utils.acc as acc
+
+MODEL_CLASSES = {
+        'bert': (BertModel, BertTokenizer),
+        'xlnet': (XLNetModel, XLNetTokenizer),
+        }
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--task_st', required=True, help='slot filling task: slot_tagger | slot_tagger_with_focus | slot_tagger_with_crf')
@@ -50,8 +55,9 @@ parser.add_argument('--read_model', required=False, help='Online test: read mode
 parser.add_argument('--read_vocab', required=False, help='Online test: read input vocab from this file')
 parser.add_argument('--out_path', required=False, help='Online test: out_path')
 
-parser.add_argument('--bert_model_name', required=True, help='bert-base-uncased, bert-base-cased, bert-large-uncased, bert-large-cased, bert-base-multilingual-cased, bert-base-chinese')
-parser.add_argument('--fix_bert_model', action='store_true', help='fix bert model')
+parser.add_argument('--pretrained_model_type', required=True, help='bert, xlnet')
+parser.add_argument('--pretrained_model_name', required=True, help='bert-base-uncased, bert-base-cased, bert-large-uncased, bert-large-cased, bert-base-multilingual-cased, bert-base-chinese; xlnet-base-cased, xlnet-large-cased')
+parser.add_argument('--fix_pretrained_model', action='store_true', help='fix pretrained (bert/xlnet) model')
 
 #parser.add_argument('--emb_size', type=int, default=100, help='word embedding dimension')
 parser.add_argument('--tag_emb_size', type=int, default=100, help='tag embedding dimension')
@@ -101,16 +107,16 @@ if opt.st_weight == 1 or opt.task_sc == 'none':
 
 if not opt.testing:
     if opt.task_sc:
-        opt.task = opt.task_st + '__and__' + opt.task_sc + '__and__' + opt.sc_type + '__with_bert'
+        opt.task = opt.task_st + '__and__' + opt.task_sc + '__and__' + opt.sc_type + '__with_transformer'
     else:
-        opt.task = opt.task_st + '__with_bert'
+        opt.task = opt.task_st + '__with_transformer'
     exp_path = util.hyperparam_string(opt)
     exp_path = os.path.join(opt.experiment, '', exp_path)
     exp_path += '__tes_%s' % (opt.tag_emb_size)
     if opt.task_sc:
         exp_path += '__alpha_%s' % (opt.st_weight)
-    exp_path += '__bert_%s' % (opt.bert_model_name)
-    if opt.fix_bert_model:
+    exp_path += '__%s_%s' % (opt.pretrained_model_type, opt.pretrained_model_name)
+    if opt.fix_pretrained_model:
         exp_path += '_fixed'
 else:
     exp_path = opt.out_path
@@ -156,7 +162,6 @@ if torch.cuda.is_available():
         torch.cuda.manual_seed(opt.random_seed)
 np.random.seed(opt.random_seed)
 
-
 dataroot = opt.dataroot
 
 tag_vocab_dir = dataroot + '/vocab.slot' 
@@ -172,8 +177,6 @@ else:
     tag_to_idx, idx_to_tag = vocab_reader.read_vocab_file(opt.read_vocab+'.tag', bos_eos=False, no_pad=True, no_unk=True)
     class_to_idx, idx_to_class = vocab_reader.read_vocab_file(opt.read_vocab+'.class', bos_eos=False, no_pad=True, no_unk=True)
 
-tokenizer = BertTokenizer.from_pretrained(opt.bert_model_name)
-
 logger.info("Vocab size: %s %s" % (len(tag_to_idx), len(class_to_idx)))
 if not opt.testing:
     vocab_reader.save_vocab(idx_to_tag, os.path.join(exp_path, opt.save_vocab+'.tag'))
@@ -188,17 +191,20 @@ else:
     valid_feats, valid_tags, valid_class = data_reader.read_seqtag_data_with_class(valid_data_dir, tag_to_idx, class_to_idx, multiClass=opt.multiClass, keep_order=opt.testing, lowercase=opt.word_lowercase)
     test_feats, test_tags, test_class = data_reader.read_seqtag_data_with_class(test_data_dir, tag_to_idx, class_to_idx, multiClass=opt.multiClass, keep_order=opt.testing, lowercase=opt.word_lowercase)
 
-model_bert = BertModel.from_pretrained(opt.bert_model_name)
-print(model_bert.config)
-if opt.fix_bert_model:
-    model_bert.encoder.output_hidden_states = True
+pretrained_model_class, tokenizer_class = MODEL_CLASSES[opt.pretrained_model_type]
+tokenizer = tokenizer_class.from_pretrained(opt.pretrained_model_name)
+if opt.fix_pretrained_model:
+    pretrained_model = pretrained_model_class.from_pretrained(opt.pretrained_model_name, output_hidden_states = True)
+else:
+    pretrained_model = pretrained_model_class.from_pretrained(opt.pretrained_model_name)
+print(pretrained_model.config)
 opt.emb_size = None
 if opt.task_st == 'slot_tagger':
-    model_tag = slot_tagger.LSTMTagger(opt.emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, bert_model=model_bert, fix_bert_model=opt.fix_bert_model)
+    model_tag = slot_tagger.LSTMTagger(opt.emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, pretrained_model=pretrained_model, pretrained_model_type=opt.pretrained_model_type, fix_pretrained_model=opt.fix_pretrained_model)
 elif opt.task_st == 'slot_tagger_with_focus':
-    model_tag = slot_tagger_with_focus.LSTMTagger_focus(opt.emb_size, opt.tag_emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, bert_model=model_bert, fix_bert_model=opt.fix_bert_model)
+    model_tag = slot_tagger_with_focus.LSTMTagger_focus(opt.emb_size, opt.tag_emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, pretrained_model=pretrained_model, pretrained_model_type=opt.pretrained_model_type, fix_pretrained_model=opt.fix_pretrained_model)
 elif opt.task_st == 'slot_tagger_with_crf':
-    model_tag = slot_tagger_with_crf.LSTMTagger_CRF(opt.emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, bert_model=model_bert, fix_bert_model=opt.fix_bert_model)
+    model_tag = slot_tagger_with_crf.LSTMTagger_CRF(opt.emb_size, opt.hidden_size, None, len(tag_to_idx), bidirectional=opt.bidirectional, num_layers=opt.num_layers, dropout=opt.dropout, device=opt.device, pretrained_model=pretrained_model, pretrained_model_type=opt.pretrained_model_type, fix_pretrained_model=opt.fix_pretrained_model)
 else:
     exit()
 
@@ -284,35 +290,7 @@ elif opt.optim.lower() == 'adamw':
     optimizer = AdamW(optimizer_grouped_parameters, lr=opt.lr, correct_bias=False)  # To reproduce BertAdam specific behavior set correct_bias=False
     scheduler = WarmupLinearSchedule(optimizer, warmup_steps=int(opt.warmup_proportion * num_train_optimization_steps), t_total=num_train_optimization_steps)  # PyTorch scheduler
 
-def prepare_inputs_for_bert(sentences, word_lengths):
-    ## sentences are sorted by sentence length
-    max_length_of_sentences = max(word_lengths)
-    tokens = []
-    selected_indexes = []
-    start_pos = 0
-    for ws in sentences:
-        selected_index = []
-        ts = tokenizer.tokenize('[CLS]')
-        for w in ws:
-            selected_index.append(len(ts))
-            ts += tokenizer.tokenize(w)
-        ts += tokenizer.tokenize('[SEP]')
-        tokens.append(ts)
-        selected_indexes.append(selected_index)
-    max_length_of_tokens = max([len(tokenized_text) for tokenized_text in tokens])
-    assert max_length_of_tokens <= model_bert.config.max_position_embeddings
-    input_mask = [[1] * len(tokenized_text) + [0] * (max_length_of_tokens - len(tokenized_text)) for tokenized_text in tokens]
-    indexed_tokens = [tokenizer.convert_tokens_to_ids(tokenized_text + ['[PAD]'] * (max_length_of_tokens - len(tokenized_text))) for tokenized_text in tokens]
-    segments_ids = [[0] * max_length_of_tokens for tokenized_text in tokens]
-    selected_indexes = [[idx + i * max_length_of_tokens for idx in selected_index] for i, selected_index in enumerate(selected_indexes)]
-    copied_indexes = [[idx + i * max_length_of_sentences for idx in range(length)] for i, length in enumerate(word_lengths)]
-
-    input_mask = torch.tensor(input_mask, dtype=torch.long, device=opt.device)
-    tokens_tensor = torch.tensor(indexed_tokens, dtype=torch.long, device=opt.device)
-    segments_tensor = torch.tensor(segments_ids, dtype=torch.long, device=opt.device)
-    selects_tensor = torch.tensor(list(itertools.chain.from_iterable(selected_indexes)), dtype=torch.long, device=opt.device)
-    copies_tensor = torch.tensor(list(itertools.chain.from_iterable(copied_indexes)), dtype=torch.long, device=opt.device)
-    return {'tokens': tokens_tensor, 'segments': segments_tensor, 'selects': selects_tensor, 'copies': copies_tensor, 'mask': input_mask}
+# prepare_inputs_for_bert(sentences, word_lengths)
 
 def decode(data_feats, data_tags, data_class, output_path):
     data_index = np.arange(len(data_feats))
@@ -325,7 +303,15 @@ def decode(data_feats, data_tags, data_class, output_path):
                 words, tags, raw_tags, classes, raw_classes, lens, line_nums = data_reader.get_minibatch_with_class(data_feats, data_tags, data_class, tag_to_idx, class_to_idx, data_index, j, opt.test_batchSize, add_start_end=opt.bos_eos, multiClass=opt.multiClass, keep_order=opt.testing, enc_dec_focus=opt.enc_dec, device=opt.device)
             else:
                 words, tags, raw_tags, classes, raw_classes, lens = data_reader.get_minibatch_with_class(data_feats, data_tags, data_class, tag_to_idx, class_to_idx, data_index, j, opt.test_batchSize, add_start_end=opt.bos_eos, multiClass=opt.multiClass, keep_order=opt.testing, enc_dec_focus=opt.enc_dec, device=opt.device)
-            inputs = prepare_inputs_for_bert(words, lens)
+
+            inputs = prepare_inputs_for_bert_xlnet(words, lens, tokenizer, 
+                    cls_token_at_end=bool(opt.pretrained_model_type in ['xlnet']),  # xlnet has a cls token at the end
+                    cls_token=tokenizer.cls_token,
+                    sep_token=tokenizer.sep_token,
+                    cls_token_segment_id=2 if opt.pretrained_model_type in ['xlnet'] else 0,
+                    pad_on_left=bool(opt.pretrained_model_type in ['xlnet']), # pad on the left for xlnet
+                    pad_token_segment_id=4 if opt.pretrained_model_type in ['xlnet'] else 0,
+                    device=opt.device)
 
             if opt.enc_dec:
                 opt.greed_decoding = True
@@ -437,8 +423,8 @@ if not opt.testing:
         # training data shuffle
         np.random.shuffle(train_data_index)
         model_tag.train()
-        if opt.fix_bert_model:
-            model_tag.bert_model.eval()
+        if opt.fix_pretrained_model:
+            model_tag.pretrained_model.eval()
         if opt.task_sc:
             model_class.train()
         
@@ -446,7 +432,14 @@ if not opt.testing:
         piece_sentences = opt.batchSize if int(nsentences * 0.1 / opt.batchSize) == 0 else int(nsentences * 0.1 / opt.batchSize) * opt.batchSize
         for j in range(0, nsentences, opt.batchSize):
             words, tags, raw_tags, classes, raw_classes, lens = data_reader.get_minibatch_with_class(train_feats['data'], train_tags['data'], train_class['data'], tag_to_idx, class_to_idx, train_data_index, j, opt.batchSize, add_start_end=opt.bos_eos, multiClass=opt.multiClass, enc_dec_focus=opt.enc_dec, device=opt.device)
-            inputs = prepare_inputs_for_bert(words, lens)
+            inputs = prepare_inputs_for_bert_xlnet(words, lens, tokenizer, 
+                    cls_token_at_end=bool(opt.pretrained_model_type in ['xlnet']),  # xlnet has a cls token at the end
+                    cls_token=tokenizer.cls_token,
+                    sep_token=tokenizer.sep_token,
+                    cls_token_segment_id=2 if opt.pretrained_model_type in ['xlnet'] else 0,
+                    pad_on_left=bool(opt.pretrained_model_type in ['xlnet']), # pad on the left for xlnet
+                    pad_token_segment_id=4 if opt.pretrained_model_type in ['xlnet'] else 0,
+                    device=opt.device)
             optimizer.zero_grad()
             if opt.enc_dec:
                 tag_scores, encoder_info = model_tag(inputs, tags[:, :-1], lens, with_snt_classifier=True)

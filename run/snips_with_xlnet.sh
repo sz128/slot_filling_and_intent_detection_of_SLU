@@ -3,27 +3,26 @@
 source ./path.sh
 
 task_slot_filling=$1 #slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
-task_intent_detection=none # none, hiddenAttention, hiddenCNN, maxPooling, 2tails
-balance_weight=1
+task_intent_detection=hiddenAttention # none, hiddenAttention, hiddenCNN, maxPooling, 2tails
+balance_weight=0.5
 
-pretrained_model_type=bert
-pretrained_model_name=bert-base-cased #bert-base-uncased #bert-large-uncased-whole-word-masking #bert-base-uncased
+pretrained_model_type=xlnet
+pretrained_model_name=xlnet-base-cased #xlnet-large-cased
 
-dataroot=data/MIT_corpus/$2 #movie_eng, movie_trivia10k13, restaurant
-dataset=mit_$2
+dataroot=data/snips
+dataset=snips
 
 lstm_hidden_size=200 # 100, 200
 lstm_layers=1
 slot_tag_embedding_size=100  ## for slot_tagger_with_focus
 batch_size=32 # 16, 32
-test_batchSize=16
 
 optimizer=bertadam # bertadam, adamw
 learning_rate=5e-5 # 1e-5, 5e-5, 1e-4, 1e-3
 max_norm_of_gradient_clip=1 # working for adamw
 dropout_rate=0.1 # 0.1, 0.5
 
-max_epoch=20
+max_epoch=30
 
 device=0
 # device=0 means auto-choosing a GPU

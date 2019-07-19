@@ -6,7 +6,8 @@ task_slot_filling=$1 # NN, NN_crf
 task_intent_detection=$2 # CLS, max, CLS_max
 balance_weight=0.5
 
-bert_model_name=bert-base-cased #bert-base-uncased #bert-large-uncased-whole-word-masking #bert-base-uncased
+pretrained_model_type=bert
+pretrained_model_name=bert-base-cased #bert-base-uncased #bert-large-uncased-whole-word-masking #bert-base-uncased
 
 dataroot=data/snips
 dataset=snips
@@ -25,4 +26,4 @@ device=0
 # Set deviceId=-1 if you are going to use cpu for training.
 experiment_output_path=exp
 
-python scripts/slot_tagging_and_intent_detection_with_pure_bert.py --task_st $task_slot_filling --task_sc $task_intent_detection --dataset $dataset --dataroot $dataroot --lr $learning_rate --dropout $dropout_rate --batchSize $batch_size --optim $optimizer --max_norm $max_norm_of_gradient_clip --experiment $experiment_output_path --deviceId $device --max_epoch $max_epoch --st_weight ${balance_weight} --bert_model_name ${bert_model_name}
+python scripts/slot_tagging_and_intent_detection_with_pure_transformer.py --task_st $task_slot_filling --task_sc $task_intent_detection --dataset $dataset --dataroot $dataroot --lr $learning_rate --dropout $dropout_rate --batchSize $batch_size --optim $optimizer --max_norm $max_norm_of_gradient_clip --experiment $experiment_output_path --deviceId $device --max_epoch $max_epoch --st_weight ${balance_weight} --pretrained_model_type ${pretrained_model_type} --pretrained_model_name ${pretrained_model_name}

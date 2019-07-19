@@ -10,7 +10,7 @@
 
 ## Setup
  * python 3.6.x
- * [pytorch](https://pytorch.org/) 1.0
+ * [pytorch](https://pytorch.org/) 1.1
  * pip install gpustat     [if gpu is used]
  * [ELMo in allennlp](https://github.com/allenai/allennlp): pip install allennlp
  * [BERT/XLNET in pytorch-transformers](https://github.com/huggingface/pytorch-transformers): pip install pytorch-transformers

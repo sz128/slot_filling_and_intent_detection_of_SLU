@@ -6,24 +6,29 @@ import torch.nn.utils.rnn as rnn_utils
 
 import models.crf as crf
 
-class BERT_joint_slot_and_intent(nn.Module):
+from pytorch_transformers.modeling_utils import SequenceSummary 
+
+class Transformers_joint_slot_and_intent(nn.Module):
     
-    def __init__(self, bert_model, tagset_size, class_size, dropout=0., device=None, extFeats_dim=None, multi_class=False, task_st='NN', task_sc='CLS'):
+    def __init__(self, pretrained_model_type, pretrained_model, tagset_size, class_size, dropout=0., device=None, extFeats_dim=None, multi_class=False, task_st='NN', task_sc='CLS'):
         """Initialize model."""
-        super(BERT_joint_slot_and_intent, self).__init__()
+        super(Transformers_joint_slot_and_intent, self).__init__()
         self.tagset_size = tagset_size
         self.class_size = class_size
         self.dropout = dropout
         self.device = device
         self.extFeats_dim = extFeats_dim
         self.multi_class = multi_class
-        self.task_st = task_st # NN, NN_crf
-        self.task_sc = task_sc # CLS, max, CLS_max
+        self.task_st = task_st # 'NN', 'NN_crf'
+        self.task_sc = task_sc # None, 'CLS', 'max', 'CLS_max'
 
         self.dropout_layer = nn.Dropout(p=self.dropout)
         
-        self.bert_model = bert_model
-        self.embedding_dim = self.bert_model.config.hidden_size
+        self.pretrained_model_type = pretrained_model_type
+        self.pretrained_model = pretrained_model
+        if self.pretrained_model_type == 'xlnet':
+            self.sequence_summary = SequenceSummary(self.pretrained_model.config)
+        self.embedding_dim = self.pretrained_model.config.hidden_size
 
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         self.append_feature_dim = 0
@@ -41,8 +46,10 @@ class BERT_joint_slot_and_intent(nn.Module):
             self.crf_layer = crf.CRF(self.tagset_size, self.device)
         if self.task_sc == 'CLS' or self.task_sc == 'max':
             self.hidden2class = nn.Linear(self.embedding_dim, self.class_size)
-        else:
+        elif self.task_sc == 'CLS_max':
             self.hidden2class = nn.Linear(self.embedding_dim * 2, self.class_size)
+        else:
+            pass
 
         #self.init_weights()
 
@@ -53,16 +60,21 @@ class BERT_joint_slot_and_intent(nn.Module):
             self.extFeats_linear.bias.data.uniform_(-initrange, initrange)
         self.hidden2tag.weight.data.uniform_(-initrange, initrange)
         self.hidden2tag.bias.data.uniform_(-initrange, initrange)
-        self.hidden2class.weight.data.uniform_(-initrange, initrange)
-        self.hidden2class.bias.data.uniform_(-initrange, initrange)
+        if self.task_sc:
+            self.hidden2class.weight.data.uniform_(-initrange, initrange)
+            self.hidden2class.bias.data.uniform_(-initrange, initrange)
     
     def forward(self, sentences, lengths, extFeats=None, masked_output=None):
         # step 1: word embedding
         tokens, segments, selects, copies, attention_mask = sentences['tokens'], sentences['segments'], sentences['selects'], sentences['copies'], sentences['mask']
-        outputs = self.bert_model(tokens, token_type_ids=segments, attention_mask=attention_mask)
-        bert_top_hiddens, bert_cls_hidden = outputs[0:2]
-        batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
-        chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
+        outputs = self.pretrained_model(tokens, token_type_ids=segments, attention_mask=attention_mask)
+        if self.pretrained_model_type == 'bert':
+            transformer_top_hiddens, transformer_cls_hidden = outputs[0:2]
+        else:
+            transformer_top_hiddens = outputs[0]
+            transformer_cls_hidden = self.sequence_summary(transformer_top_hiddens)
+        batch_size, transformer_seq_length, hidden_size = transformer_top_hiddens.size(0), transformer_top_hiddens.size(1), transformer_top_hiddens.size(2)
+        chosen_encoder_hiddens = transformer_top_hiddens.view(-1, hidden_size).index_select(0, selects)
         embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
         embeds = embeds.index_copy_(0, copies, chosen_encoder_hiddens).view(len(lengths), max(lengths), -1)
         if type(extFeats) != type(None):
@@ -80,19 +92,22 @@ class BERT_joint_slot_and_intent(nn.Module):
         tag_scores = tag_scores.view(concat_input.size(0), concat_input.size(1), tag_space.size(1))
         
         # step 3: intent classifier
-        if self.task_sc == 'CLS':
-            hidden_for_intent = bert_cls_hidden
-        elif self.task_sc == 'max':
-            hidden_for_intent = embeds.max(1)[0]
+        if self.task_sc:
+            if self.task_sc == 'CLS':
+                hidden_for_intent = transformer_cls_hidden
+            elif self.task_sc == 'max':
+                hidden_for_intent = embeds.max(1)[0]
+            else:
+                hidden_for_intent = torch.cat((transformer_cls_hidden, embeds.max(1)[0]), dim=1)
+            class_space = self.hidden2class(self.dropout_layer(transformer_cls_hidden))
+            if self.multi_class:
+                class_scores = torch.sigmoid(class_space)
+                if type(masked_output) != type(None):
+                    class_scores.index_fill_(1, masked_output, 0)
+            else:
+                class_scores = F.log_softmax(class_space, dim=1)
         else:
-            hidden_for_intent = torch.cat((bert_cls_hidden, embeds.max(1)[0]), dim=1)
-        class_space = self.hidden2class(self.dropout_layer(bert_cls_hidden))
-        if self.multi_class:
-            class_scores = torch.sigmoid(class_space)
-            if type(masked_output) != type(None):
-                class_scores.index_fill_(1, masked_output, 0)
-        else:
-            class_scores = F.log_softmax(class_space, dim=1)
+            class_scores = None
         
         return tag_scores, class_scores
 

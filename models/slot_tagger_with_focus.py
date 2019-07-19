@@ -8,7 +8,7 @@ from models.Beam import Beam
 
 class LSTMTagger_focus(nn.Module):
     
-    def __init__(self, embedding_dim, tag_embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None, decoder_tied=False, elmo_model=None, bert_model=None, fix_bert_model=False):
+    def __init__(self, embedding_dim, tag_embedding_dim, hidden_dim, vocab_size, tagset_size, bidirectional=True, num_layers=1, dropout=0., device=None, extFeats_dim=None, decoder_tied=False, elmo_model=None, pretrained_model=None, pretrained_model_type=None, fix_pretrained_model=False):
         """Initialize model."""
         super(LSTMTagger_focus, self).__init__()
         self.embedding_dim = embedding_dim
@@ -30,21 +30,22 @@ class LSTMTagger_focus(nn.Module):
         self.tag_embeddings = nn.Embedding(self.tagset_size, self.tag_embedding_dim)
         
         self.elmo_model = elmo_model
-        self.bert_model = bert_model
-        self.fix_bert_model = fix_bert_model
-        if self.fix_bert_model:
-            self.number_of_last_hiddens_of_bert = 4
-            self.weighted_scores_of_last_hiddens = nn.Linear(self.number_of_last_hiddens_of_bert, 1, bias=False)
-            for weight in self.bert_model.parameters():
+        self.pretrained_model = pretrained_model
+        self.pretrained_model_type = pretrained_model_type
+        self.fix_pretrained_model = fix_pretrained_model
+        if self.fix_pretrained_model:
+            self.number_of_last_hiddens_of_pretrained = 4
+            self.weighted_scores_of_last_hiddens = nn.Linear(self.number_of_last_hiddens_of_pretrained, 1, bias=False)
+            for weight in self.pretrained_model.parameters():
                 weight.requires_grad = False
         else:
-            self.number_of_last_hiddens_of_bert = 1
-        if self.elmo_model and self.bert_model:
-            self.embedding_dim = self.elmo_model.get_output_dim() + self.bert_model.config.hidden_size
+            self.number_of_last_hiddens_of_pretrained = 1
+        if self.elmo_model and self.pretrained_model:
+            self.embedding_dim = self.elmo_model.get_output_dim() + self.pretrained_model.config.hidden_size
         elif self.elmo_model:
             self.embedding_dim = self.elmo_model.get_output_dim()
-        elif self.bert_model:
-            self.embedding_dim = self.bert_model.config.hidden_size
+        elif self.pretrained_model:
+            self.embedding_dim = self.pretrained_model.config.hidden_size
         else:
             self.word_embeddings = nn.Embedding(self.vocab_size, self.embedding_dim)
         # The LSTM takes word embeddings as inputs, and outputs hidden states
@@ -68,11 +69,11 @@ class LSTMTagger_focus(nn.Module):
 
     def init_weights(self, initrange=0.2):
         """Initialize weights."""
-        if not self.elmo_model and not self.bert_model:
+        if not self.elmo_model and not self.pretrained_model:
             self.word_embeddings.weight.data.uniform_(-initrange, initrange)
         #for pad_token_idx in self.pad_token_idxs:
         #    self.word_embeddings.weight.data[pad_token_idx].zero_()
-        if self.fix_bert_model:
+        if self.fix_pretrained_model:
             self.weighted_scores_of_last_hiddens.weight.data.uniform_(-initrange, initrange)
         if self.extFeats_linear:
             self.extFeats_linear.weight.data.uniform_(-initrange, initrange)
@@ -87,36 +88,36 @@ class LSTMTagger_focus(nn.Module):
         self.hidden2tag.bias.data.uniform_(-initrange, initrange)
 
     def get_token_embeddings(self, word_seqs, lengths):
-        if self.elmo_model and self.bert_model:
+        if self.elmo_model and self.pretrained_model:
             elmo_embeds = self.elmo_model(word_seqs['elmo'])
             elmo_embeds = elmo_embeds['elmo_representations'][0]
-            tokens, segments, selects, copies, attention_mask = word_seqs['bert']['tokens'], word_seqs['bert']['segments'], word_seqs['bert']['selects'], word_seqs['bert']['copies'], word_seqs['bert']['mask']
-            outputs = self.bert_model(tokens, segments, attention_mask)
-            if self.fix_bert_model:
-                bert_all_hiddens = outputs[2]
-                used_hiddens = torch.cat([hiddens.unsqueeze(3) for hiddens in bert_all_hiddens[- self.number_of_last_hiddens_of_bert:]], dim=-1)
-                bert_top_hiddens = self.weighted_scores_of_last_hiddens(used_hiddens).squeeze(3)
+            tokens, segments, selects, copies, attention_mask = word_seqs['transformer']['tokens'], word_seqs['transformer']['segments'], word_seqs['transformer']['selects'], word_seqs['transformer']['copies'], word_seqs['transformer']['mask']
+            outputs = self.pretrained_model(tokens, token_type_ids=segments, attention_mask=attention_mask)
+            if self.fix_pretrained_model:
+                pretrained_all_hiddens = outputs[2]
+                used_hiddens = torch.cat([hiddens.unsqueeze(3) for hiddens in pretrained_all_hiddens[- self.number_of_last_hiddens_of_pretrained:]], dim=-1)
+                pretrained_top_hiddens = self.weighted_scores_of_last_hiddens(used_hiddens).squeeze(3)
             else:
-                bert_all_hiddens = outputs[0]
-            batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
-            chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
-            bert_embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
-            bert_embeds = bert_embeds.index_copy_(0, copies, chosen_encoder_hiddens).view(len(lengths), max(lengths), -1)
-            embeds = torch.cat((elmo_embeds, bert_embeds), dim=2)
+                pretrained_top_hiddens = outputs[0]
+            batch_size, pretrained_seq_length, hidden_size = pretrained_top_hiddens.size(0), pretrained_top_hiddens.size(1), pretrained_top_hiddens.size(2)
+            chosen_encoder_hiddens = pretrained_top_hiddens.view(-1, hidden_size).index_select(0, selects)
+            pretrained_embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
+            pretrained_embeds = pretrained_embeds.index_copy_(0, copies, chosen_encoder_hiddens).view(len(lengths), max(lengths), -1)
+            embeds = torch.cat((elmo_embeds, pretrained_embeds), dim=2)
         elif self.elmo_model:
             elmo_embeds = self.elmo_model(word_seqs)
             embeds = elmo_embeds['elmo_representations'][0]
-        elif self.bert_model:
+        elif self.pretrained_model:
             tokens, segments, selects, copies, attention_mask = word_seqs['tokens'], word_seqs['segments'], word_seqs['selects'], word_seqs['copies'], word_seqs['mask']
-            outputs = self.bert_model(tokens, segments, attention_mask)
-            if self.fix_bert_model:
-                bert_all_hiddens = outputs[2]
-                used_hiddens = torch.cat([hiddens.unsqueeze(3) for hiddens in bert_all_hiddens[- self.number_of_last_hiddens_of_bert:]], dim=-1)
-                bert_top_hiddens = self.weighted_scores_of_last_hiddens(used_hiddens).squeeze(3)
+            outputs = self.pretrained_model(tokens, token_type_ids=segments, attention_mask=attention_mask)
+            if self.fix_pretrained_model:
+                pretrained_all_hiddens = outputs[2]
+                used_hiddens = torch.cat([hiddens.unsqueeze(3) for hiddens in pretrained_all_hiddens[- self.number_of_last_hiddens_of_pretrained:]], dim=-1)
+                pretrained_top_hiddens = self.weighted_scores_of_last_hiddens(used_hiddens).squeeze(3)
             else:
-                bert_top_hiddens = outputs[0]
-            batch_size, bert_seq_length, hidden_size = bert_top_hiddens.size(0), bert_top_hiddens.size(1), bert_top_hiddens.size(2)
-            chosen_encoder_hiddens = bert_top_hiddens.view(-1, hidden_size).index_select(0, selects)
+                pretrained_top_hiddens = outputs[0]
+            batch_size, pretrained_seq_length, hidden_size = pretrained_top_hiddens.size(0), pretrained_top_hiddens.size(1), pretrained_top_hiddens.size(2)
+            chosen_encoder_hiddens = pretrained_top_hiddens.view(-1, hidden_size).index_select(0, selects)
             embeds = torch.zeros(len(lengths) * max(lengths), hidden_size, device=self.device)
             embeds = embeds.index_copy_(0, copies, chosen_encoder_hiddens).view(len(lengths), max(lengths), -1)
         else:
