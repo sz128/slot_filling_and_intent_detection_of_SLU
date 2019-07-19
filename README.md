@@ -116,7 +116,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
 
 ## Results:
 
- * For "NLU + BERT" model, hyper-parameters are not tuned carefully.
+ * For "NLU + BERT/XLNET" models, hyper-parameters are not tuned carefully.
  
  1. Results of ATIS:
     
