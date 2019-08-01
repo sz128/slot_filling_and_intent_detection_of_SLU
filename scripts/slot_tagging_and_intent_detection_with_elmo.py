@@ -13,6 +13,7 @@ install_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(_
 sys.path.append(install_path)
 
 from allennlp.modules.elmo import Elmo, batch_to_ids
+#from models.fast_elmo import FastElmo as Elmo
 
 import models.slot_tagger as slot_tagger
 import models.slot_tagger_with_focus as slot_tagger_with_focus
@@ -235,7 +236,7 @@ params = []
 params += list(model_tag.parameters())
 if opt.task_sc:
     params += list(model_class.parameters())
-params = filter(lambda p: p.requires_grad, params)
+params = list(filter(lambda p: p.requires_grad, params)) # must be list, otherwise clip_grad_norm_ will be invalid 
 if opt.optim.lower() == 'sgd':
     optimizer = optim.SGD(params, lr=opt.lr)
 elif opt.optim.lower() == 'adam':

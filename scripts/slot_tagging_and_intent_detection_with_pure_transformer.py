@@ -204,14 +204,14 @@ if opt.task_sc:
 
 # optimizer
 if opt.optim.lower() == 'sgd':
-    params = filter(lambda p: p.requires_grad, model_tag_and_class.parameters())
+    params = list(filter(lambda p: p.requires_grad, model_tag_and_class.parameters()))
     optimizer = optim.SGD(params, lr=opt.lr)
 elif opt.optim.lower() == 'adam':
-    params = filter(lambda p: p.requires_grad, model_tag_and_class.parameters())
+    params = list(filter(lambda p: p.requires_grad, model_tag_and_class.parameters()))
     optimizer = optim.Adam(params, lr=opt.lr, betas=(0.9, 0.999), eps=1e-8, weight_decay=0) # (beta1, beta2)
 elif opt.optim.lower() == 'bertadam':
     named_params = list(model_tag_and_class.named_parameters())
-    named_params = filter(lambda p: p[1].requires_grad, named_params)
+    named_params = list(filter(lambda p: p[1].requires_grad, named_params))
     no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
         {'params': [p for n, p in named_params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
@@ -220,9 +220,9 @@ elif opt.optim.lower() == 'bertadam':
     num_train_optimization_steps = len(train_feats['data']) // opt.batchSize * opt.max_epoch
     optimizer = BertAdam(optimizer_grouped_parameters, lr=opt.lr, warmup=opt.warmup_proportion, t_total=num_train_optimization_steps)
 elif opt.optim.lower() == 'adamw':
-    params = filter(lambda p: p.requires_grad, model_tag_and_class.parameters())
+    params = list(filter(lambda p: p.requires_grad, model_tag_and_class.parameters()))
     named_params = list(model_tag_and_class.named_parameters())
-    named_params = filter(lambda p: p[1].requires_grad, named_params)
+    named_params = list(filter(lambda p: p[1].requires_grad, named_params))
     no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
         {'params': [p for n, p in named_params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},

@@ -255,14 +255,14 @@ if opt.optim.lower() == 'adam':
     params += list(model_tag.parameters())
     if opt.task_sc:
         params += list(model_class.parameters())
-    params = filter(lambda p: p.requires_grad, params)
+    params = list(filter(lambda p: p.requires_grad, params))
     optimizer = optim.Adam(params, lr=opt.lr, betas=(0.9, 0.999), eps=1e-8, weight_decay=0) # (beta1, beta2)
 elif opt.optim.lower() == 'bertadam':
     named_params = []
     named_params += list(model_tag.named_parameters())
     if opt.task_sc:
         named_params += list(model_class.named_parameters())
-    named_params = filter(lambda p: p[1].requires_grad, named_params)
+    named_params = list(filter(lambda p: p[1].requires_grad, named_params))
     no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
         {'params': [p for n, p in named_params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
@@ -275,12 +275,12 @@ elif opt.optim.lower() == 'adamw':
     params += list(model_tag.parameters())
     if opt.task_sc:
         params += list(model_class.parameters())
-    params = filter(lambda p: p.requires_grad, params)
+    params = list(filter(lambda p: p.requires_grad, params))
     named_params = []
     named_params += list(model_tag.named_parameters())
     if opt.task_sc:
         named_params += list(model_class.named_parameters())
-    named_params = filter(lambda p: p[1].requires_grad, named_params)
+    named_params = list(filter(lambda p: p[1].requires_grad, named_params))
     no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
         {'params': [p for n, p in named_params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
