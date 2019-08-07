@@ -25,7 +25,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
  * Add char-embeddings
 
 ## Tutorials A: Slot filling and intent detection with pretrained word embeddings
- 1. Pretrained word embeddings are borrowed from CNN-BLSTM language models of [ELMo](https://github.com/allenai/allennlp/blob/master/tutorials/how_to/elmo.md) where word embeddings are modelled by char-CNNs. We extract the pretrained word embeddings for atis and snips datasets by:
+ 1. Pretrained word embeddings are borrowed from CNN-BLSTM language models of [ELMo](https://github.com/allenai/allennlp/blob/master/tutorials/how_to/elmo.md) where word embeddings are modelled by char-CNNs. We extract the pretrained word embeddings for [ATIS](https://github.com/yvchen/JointSLU), [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines) and [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent) datasets by:
  ```sh
    python3 scripts/get_ELMo_word_embedding_for_a_dataset.py \
            --in_files data/atis-2/{train,valid,test} \
@@ -43,16 +43,19 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    ```sh
    bash run/atis_with_pretrained_word_embeddings.sh slot_tagger
    bash run/snips_with_pretrained_word_embeddings.sh slot_tagger
+   bash run/MIT_corpus_with_pretrained_word_embeddings.sh slot_tagger
    ```
    * BLSTM-CRF model: 
    ```sh
    bash run/atis_with_pretrained_word_embeddings.sh slot_tagger_with_crf
    bash run/snips_with_pretrained_word_embeddings.sh slot_tagger_with_crf
+   bash run/MIT_corpus_with_pretrained_word_embeddings.sh slot_tagger_with_crf
    ```
    * Enc-dec focus model (BLSTM-LSTM), the same as Encoder-Decoder NN (with aligned inputs)(Liu and Lane, 2016): 
    ```sh
    bash run/atis_with_pretrained_word_embeddings.sh slot_tagger_with_focus
    bash run/snips_with_pretrained_word_embeddings.sh slot_tagger_with_focus
+   bash run/MIT_corpus_with_pretrained_word_embeddings.sh slot_tagger_with_focus
    ```
 
 ## Tutorials B: Slot filling and intent detection with [ELMo](https://arxiv.org/abs/1802.05365)
@@ -63,6 +66,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    slot_intent_model=slot_tagger # slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
    bash run/atis_with_elmo.sh ${slot_intent_model}
    bash run/snips_with_elmo.sh ${slot_intent_model}
+   bash run/MIT_corpus_with_elmo.sh ${slot_intent_model}
    ```
 
 ## Tutorials C: Slot filling and intent detection with [BERT](https://github.com/google-research/bert)
@@ -84,15 +88,17 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    intent_input=CLS # none, CLS, max, CLS_max
    bash run/atis_with_pure_bert.sh ${slot_model} ${intent_input}
    bash run/snips_with_pure_bert.sh ${slot_model} ${intent_input}
+   bash run/MIT_corpus_with_pure_bert.sh ${slot_model} ${intent_input}
    ```
    * BERT + BLSTM/BLSTM-CRF/Enc-dec focus model (BLSTM-LSTM) models: 
    ```sh
    slot_intent_model=slot_tagger # slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
    bash run/atis_with_bert.sh ${slot_intent_model}
    bash run/snips_with_bert.sh ${slot_intent_model}
+   bash run/MIT_corpus_with_bert.sh ${slot_intent_model}
    ```
 
- 2. For optimizer, you can try BertAdam and AdamW. In my experiments, I choose to use BertAdam.
+ 2. For optimizer, you can try **BertAdam** and **AdamW**. In my experiments, I choose to use BertAdam.
 
 ## Tutorials D: Slot filling and intent detection with [XLNET](https://github.com/zihangdai/xlnet)
 
@@ -103,12 +109,14 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    intent_input=CLS # none, CLS, max, CLS_max
    bash run/atis_with_pure_xlnet.sh ${slot_model} ${intent_input}
    bash run/snips_with_pure_xlnet.sh ${slot_model} ${intent_input}
+   bash run/MIT_corpus_with_pure_xlnet.sh ${slot_model} ${intent_input}
    ```
    * XLNET + BLSTM/BLSTM-CRF/Enc-dec focus model (BLSTM-LSTM) models: 
    ```sh
    slot_intent_model=slot_tagger # slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
    bash run/atis_with_xlnet.sh ${slot_intent_model}
    bash run/snips_with_xlnet.sh ${slot_intent_model}
+   bash run/MIT_corpus_with_xlnet.sh ${slot_intent_model}
    ```
 
  2. For optimizer, you can try BertAdam and AdamW.
