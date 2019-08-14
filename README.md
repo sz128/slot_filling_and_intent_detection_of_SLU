@@ -82,7 +82,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    <img src="./figs/bert_SLU_complex.png" width="400" alt="bert_SLU_complex"/>
 
  1. Run scripts of training and evaluation at each epoch.
-   * Pure BERT (withou or with crf) model: 
+   * Pure BERT (without or with crf) model: 
    ```sh
    slot_model=NN # NN, NN_crf
    intent_input=CLS # none, CLS, max, CLS_max
@@ -103,7 +103,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
 ## Tutorials D: Slot filling and intent detection with [XLNET](https://github.com/zihangdai/xlnet)
 
  1. Run scripts of training and evaluation at each epoch.
-   * Pure XLNET (withou or with crf) model: 
+   * Pure XLNET (without or with crf) model: 
    ```sh
    slot_model=NN # NN, NN_crf
    intent_input=CLS # none, CLS, max, CLS_max
