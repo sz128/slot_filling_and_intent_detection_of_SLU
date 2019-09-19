@@ -6,7 +6,8 @@ task_slot_filling=$1 #slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
 task_intent_detection=hiddenAttention # none, hiddenAttention, hiddenCNN, maxPooling, 2tails
 balance_weight=0.5
 
-cased_word_vectors=./local/word_embeddings/elmo_1024_cased_for_atis.txt
+#cased_word_vectors=./local/word_embeddings/elmo_1024_cased_for_atis.txt
+cased_word_vectors=./local/word_embeddings/glove-kazumachar_400_cased_for_atis.txt
 read_word2vec_inText=${cased_word_vectors}
 word_lowercase=false
 fix_word2vec_inText=false
@@ -15,7 +16,7 @@ word_digit_features=false #false, true
 dataroot=data/atis-2
 dataset=atis
 
-word_embedding_size=1024
+word_embedding_size=400 #1024
 lstm_hidden_size=200
 lstm_layers=1
 slot_tag_embedding_size=100  ## for slot_tagger_with_focus
