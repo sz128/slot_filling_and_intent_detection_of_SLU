@@ -198,8 +198,8 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | BLSTM-CRF (A. Pre-train word emb. of ELMo) | 79.77 | 87.36 | 71.83 |
     | Enc-dec focus (A. Pre-train word emb. of ELMo) | 78.77 | 86.68 | 70.85 |
     | BLSTM (A. Pre-train word emb. of Glove & KazumaChar) | 78.02 | 86.33 | 68.55 |
-    | BLSTM-CRF (A. Pre-train word emb. of Glove & KazumaChar) | 79.84 | 87.61 | 71.90 |
-    | Enc-dec focus (A. Pre-train word emb. of Glove & KazumaChar) | 79.98 | 86.82 | 71.10 |
+    | BLSTM-CRF (A. Pre-train word emb. of Glove & KazumaChar) | 79.84 | **87.61** | **71.90** |
+    | Enc-dec focus (A. Pre-train word emb. of Glove & KazumaChar) | **79.98** | 86.82 | 71.10 |
 
 ## Reference
  * Su Zhu and Kai Yu, "Encoder-decoder with focus-mechanism for sequence labelling based spoken language understanding," in IEEE International Conference on Acoustics, Speech and Signal Processing(ICASSP), 2017, pp. 5675-5679.
