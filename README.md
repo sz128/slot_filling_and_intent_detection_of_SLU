@@ -12,6 +12,7 @@
  * python 3.6.x
  * [pytorch](https://pytorch.org/) 1.1
  * pip install gpustat     [if gpu is used]
+ * [embeddings](https://github.com/vzhong/embeddings): pip install embeddings
  * [ELMo in allennlp](https://github.com/allenai/allennlp): pip install allennlp
  * [BERT/XLNET in pytorch-transformers](https://github.com/huggingface/pytorch-transformers): pip install pytorch-transformers
  
@@ -36,6 +37,18 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    python3 scripts/get_ELMo_word_embedding_for_a_dataset.py \
            --in_files data/MIT_corpus/{movie_eng,movie_trivia10k13,restaurant}/{train,valid,test} \
            --output_word2vec local/word_embeddings/elmo_1024_cased_for_MIT_corpus.txt
+```
+, or use Glove and KazumaChar [embeddings](https://github.com/vzhong/embeddings) which are also exploited in the [TRADE](https://arxiv.org/pdf/1905.08743.pdf) dialogue state tracker:
+ ```sh
+   python3 scripts/get_Glove-KazumaChar_word_embedding_for_a_dataset.py \
+           --in_files data/atis-2/{train,valid,test} \
+           --output_word2vec local/word_embeddings/glove-kazumachar_400_cased_for_atis.txt
+   python3 scripts/get_Glove-KazumaChar_word_embedding_for_a_dataset.py \
+           --in_files data/snips/{train,valid,test} \
+           --output_word2vec local/word_embeddings/glove-kazumachar_400_cased_for_snips.txt
+   python3 scripts/get_Glove-KazumaChar_word_embedding_for_a_dataset.py \
+           --in_files data/MIT_corpus/{movie_eng,movie_trivia10k13,restaurant}/{train,valid,test} \
+           --output_word2vec local/word_embeddings/glove-kazumachar_400_cased_for_MIT_corpus.txt
 ```
 
  2. Run scripts of training and evaluation at each epoch.
@@ -138,9 +151,12 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | [BLSTM-CRF + ELMo](https://arxiv.org/abs/1811.05370) | 97.42 | 95.62 |
     | [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf) | 97.5 | 96.1 |
     | [Joint BERT + CRF](https://arxiv.org/pdf/1902.10909.pdf) | 97.9 | 96.0 |
-    | BLSTM (A. Pre-train word emb.) | 98.10 | 95.67 |
-    | BLSTM-CRF (A. Pre-train word emb.) | 98.54 | 95.39 |
-    | Enc-dec focus (A. Pre-train word emb.) | 98.43 | 95.78 |
+    | BLSTM (A. Pre-train word emb. of ELMo) | 98.10 | 95.67 |
+    | BLSTM-CRF (A. Pre-train word emb. of ELMo) | 98.54 | 95.39 |
+    | Enc-dec focus (A. Pre-train word emb. of ELMo) | 98.43 | 95.78 |
+    | BLSTM (A. Pre-train word emb. of Glove & KazumaChar) | 98.66 | 95.55 |
+    | BLSTM-CRF (A. Pre-train word emb. of Glove & KazumaChar) | 98.21 | 95.74 |
+    | Enc-dec focus (A. Pre-train word emb. of Glove & KazumaChar) | 98.66 | 95.86 |
     | BLSTM (B. +ELMo) | 98.66 | 95.52 |
     | BLSTM-CRF (B. +ELMo) | 98.32 | 95.62 |
     | Enc-dec focus (B. +ELMo) | 98.66 | 95.70 |
@@ -157,9 +173,12 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | [BLSTM-CRF + ELMo](https://arxiv.org/abs/1811.05370) | **99.29** | 93.90 |
     | [Joint BERT](https://arxiv.org/pdf/1902.10909.pdf) | 98.6 | 97.0 |
     | [Joint BERT + CRF](https://arxiv.org/pdf/1902.10909.pdf) | 98.4 | 96.7 |
-    | BLSTM (A. Pre-train word emb.) | 99.14 | 95.75 |
-    | BLSTM-CRF (A. Pre-train word emb.) | 99.00 | 96.92 |
-    | Enc-dec focus (A. Pre-train word emb.) | 98.71 | 96.22 |
+    | BLSTM (A. Pre-train word emb. of ELMo) | 99.14 | 95.75 |
+    | BLSTM-CRF (A. Pre-train word emb. of ELMo) | 99.00 | 96.92 |
+    | Enc-dec focus (A. Pre-train word emb. of ELMo) | 98.71 | 96.22 |
+    | BLSTM (A. Pre-train word emb. of Glove & KazumaChar) | 99.14 | 96.24 |
+    | BLSTM-CRF (A. Pre-train word emb. of Glove & KazumaChar) | 98.86 | 96.31 |
+    | Enc-dec focus (A. Pre-train word emb. of Glove & KazumaChar) | 98.43 | 96.06 |
     | BLSTM (B. +ELMo) | 98.71 | 96.32 |
     | BLSTM-CRF (B. +ELMo) | 98.57 | 96.61 |
     | Enc-dec focus (B. +ELMo) | 99.14 | 96.69 |
@@ -175,9 +194,12 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | [Dom-Gen-Adv](https://arxiv.org/pdf/1711.11310.pdf) | 74.25 | 83.03 | 63.51 |
     | [Joint Dom Spec & Gen-Adv](https://arxiv.org/pdf/1711.11310.pdf) | 74.47 | 85.33 | 65.33 |
     | [Data Augmentation via Joint Variational Generation](https://arxiv.org/pdf/1809.02305.pdf) | 73.0 | 82.9 | 65.7 |
-    | BLSTM (A. Pre-train word emb.) | 77.54 | 85.37 | 67.97 |
-    | BLSTM-CRF (A. Pre-train word emb.) | 79.77 | 87.36 | 71.83 |
-    | Enc-dec focus (A. Pre-train word emb.) | 78.77 | 86.68 | 70.85 |
+    | BLSTM (A. Pre-train word emb. of ELMo) | 77.54 | 85.37 | 67.97 |
+    | BLSTM-CRF (A. Pre-train word emb. of ELMo) | 79.77 | 87.36 | 71.83 |
+    | Enc-dec focus (A. Pre-train word emb. of ELMo) | 78.77 | 86.68 | 70.85 |
+    | BLSTM (A. Pre-train word emb. of Glove & KazumaChar) | 78.02 | 86.33 | 68.55 |
+    | BLSTM-CRF (A. Pre-train word emb. of Glove & KazumaChar) | 79.84 | 87.61 | 71.90 |
+    | Enc-dec focus (A. Pre-train word emb. of Glove & KazumaChar) | 79.98 | 86.82 | 71.10 |
 
 ## Reference
  * Su Zhu and Kai Yu, "Encoder-decoder with focus-mechanism for sequence labelling based spoken language understanding," in IEEE International Conference on Acoustics, Speech and Signal Processing(ICASSP), 2017, pp. 5675-5679.
