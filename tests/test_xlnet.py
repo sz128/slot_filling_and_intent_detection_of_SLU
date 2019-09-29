@@ -7,7 +7,7 @@
 '''
 
 import torch
-from pytorch_transformers import XLNetModel, XLNetTokenizer
+from transformers import XLNetModel, XLNetTokenizer
 
 # OPTIONAL: if you want to have more information on what's happening, activate the logger as follows
 import logging
@@ -37,5 +37,5 @@ segment_ids += [1] * (len(tokens_b) + 1) + [2]
 input_ids = torch.tensor([tokenizer.convert_tokens_to_ids(tokens)])
 segment_ids = torch.tensor([segment_ids])
 
-last_hidden_states = model(input_ids, segment_ids)[0]
+last_hidden_states = model(input_ids, token_type_ids=segment_ids)[0]
 print(last_hidden_states.size())

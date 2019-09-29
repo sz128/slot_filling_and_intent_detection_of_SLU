@@ -6,7 +6,7 @@ import torch.nn.utils.rnn as rnn_utils
 
 import models.crf as crf
 
-from pytorch_transformers.modeling_utils import SequenceSummary 
+from transformers.modeling_utils import SequenceSummary 
 
 class Transformers_joint_slot_and_intent(nn.Module):
     

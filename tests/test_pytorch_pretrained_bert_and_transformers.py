@@ -8,7 +8,7 @@
 
 import torch
 #from pytorch_pretrained_bert import BertTokenizer, BertModel, BertForMaskedLM
-from pytorch_transformers import BertTokenizer, BertModel, BertForMaskedLM
+from transformers import BertTokenizer, BertModel, BertForMaskedLM
 
 # OPTIONAL: if you want to have more information on what's happening under the hood, activate the logger as follows
 import logging

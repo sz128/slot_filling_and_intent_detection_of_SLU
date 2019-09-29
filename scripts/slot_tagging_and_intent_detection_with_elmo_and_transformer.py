@@ -14,8 +14,8 @@ sys.path.append(install_path)
 
 #from pytorch_pretrained_bert import BertTokenizer, BertModel
 #from pytorch_pretrained_bert.optimization import BertAdam, WarmupLinearSchedule
-from pytorch_transformers import BertTokenizer, BertModel, XLNetTokenizer, XLNetModel 
-from pytorch_transformers.optimization import AdamW, WarmupLinearSchedule
+from transformers import BertTokenizer, BertModel, XLNetTokenizer, XLNetModel 
+from transformers.optimization import AdamW, WarmupLinearSchedule
 from models.optimization import BertAdam
 from utils.bert_xlnet_inputs import prepare_inputs_for_bert_xlnet
 
