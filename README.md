@@ -14,7 +14,7 @@
  * pip install gpustat     [if gpu is used]
  * [embeddings](https://github.com/vzhong/embeddings): pip install embeddings
  * [ELMo in allennlp](https://github.com/allenai/allennlp): pip install allennlp
- * [BERT/XLNET in pytorch-transformers](https://github.com/huggingface/pytorch-transformers): pip install pytorch-transformers
+ * [BERT/XLNET in transformers](https://github.com/huggingface/transformers): pip install transformers
  
 ## About the evaluations of intent detection on ATIS and SNIPS datasets.
 
