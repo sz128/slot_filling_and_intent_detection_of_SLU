@@ -108,6 +108,13 @@ else:
 if not os.path.exists(exp_path):
     os.makedirs(exp_path)
 
+try:
+    import absl.logging
+    logging.root.removeHandler(absl.logging._absl_handler)
+    absl.logging._warn_preinit_stderr = False
+except Exception as e:
+    print("Failed to fix absl logging bug", e)
+    pass
 logFormatter = logging.Formatter('%(message)s') #('%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('mylogger')
 logger.setLevel(logging.DEBUG)
