@@ -4,7 +4,7 @@
    * An implementation of BLSTM-CRF based on [jiesutd/NCRFpp](https://github.com/jiesutd/NCRFpp/blob/master/model/crf.py)
    * An implementation of joint training of slot filling and intent detection tasks [(Bing Liu and Ian Lane, 2016)](https://arxiv.org/abs/1609.01454).
  * Basic models + [ELMo](https://arxiv.org/abs/1802.05365) / [BERT](https://github.com/google-research/bert) / [XLNET](https://github.com/zihangdai/xlnet)
- * Tutorials on [ATIS](https://github.com/yvchen/JointSLU), [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines) and [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent) datasets.
+ * Tutorials on [ATIS](https://github.com/yvchen/JointSLU), [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines) and [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent) and [E-commerce Shopping Assistant (ECSA) from Alibaba](https://github.com/pangolulu/DCMTL)(w/o intent, in Chinese) datasets.
  
  <img src="./figs/data_annotation_ATIS.png" width="750" alt="data annotation"/>
 
@@ -200,6 +200,14 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | BLSTM (A. Pre-train word emb. of Glove & KazumaChar) | 78.02 | 86.33 | 68.55 |
     | BLSTM-CRF (A. Pre-train word emb. of Glove & KazumaChar) | 79.84 | **87.61** | **71.90** |
     | Enc-dec focus (A. Pre-train word emb. of Glove & KazumaChar) | **79.98** | 86.82 | 71.10 |
+
+ 4. Slot F1-scores of [E-commerce Shopping Assistant (ECSA) from Alibaba](https://github.com/pangolulu/DCMTL)(w/o intent, in Chinese):
+    
+    | models | slot F1-score (%) |
+    |:------:|------|
+    | [Basic BiLSTM-CRF](https://arxiv.org/pdf/1803.11326.pdf) | 43.02 |
+    | Pure BERT | 46.96 |
+    | Pure BERT-CRF | 47.75 |
 
 ## Reference
  * Su Zhu and Kai Yu, "Encoder-decoder with focus-mechanism for sequence labelling based spoken language understanding," in IEEE International Conference on Acoustics, Speech and Signal Processing(ICASSP), 2017, pp. 5675-5679.
