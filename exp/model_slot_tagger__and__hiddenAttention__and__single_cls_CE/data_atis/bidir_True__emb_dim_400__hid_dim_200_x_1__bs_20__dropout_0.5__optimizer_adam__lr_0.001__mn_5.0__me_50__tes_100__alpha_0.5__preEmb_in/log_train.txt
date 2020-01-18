@@ -1,0 +1,168 @@
+Namespace(batchSize=20, bidirectional=True, bos_eos=False, crf=False, dataroot='data/atis-2', dataset='atis', deviceId=0, dropout=0.5, emb_size=400, enc_dec=False, experiment='exp', fix_input_word2vec=False, hidden_size=200, init_weight=0.2, lr=0.001, max_epoch=50, max_norm=5.0, mini_word_freq=2, multiClass=False, noStdout=False, num_layers=1, optim='adam', out_path=None, random_seed=999, read_input_word2vec='./local/word_embeddings/glove-kazumachar_400_cased_for_atis.txt', read_model=None, read_vocab=None, save_model='model', save_vocab='vocab', sc_type='single_cls_CE', st_weight=0.5, tag_emb_size=100, task='slot_tagger__and__hiddenAttention__and__single_cls_CE', task_sc='hiddenAttention', task_st='slot_tagger', test_batchSize=20, testing=False, word_digit_features=False, word_lowercase=False)
+Experiment path: exp/model_slot_tagger__and__hiddenAttention__and__single_cls_CE/data_atis/bidir_True__emb_dim_400__hid_dim_200_x_1__bs_20__dropout_0.5__optimizer_adam__lr_0.001__mn_5.0__me_50__tes_100__alpha_0.5__preEmb_in
+Thu Sep 19 10:46:20 2019
+Valid GPU list: 0 ; GPU 0 (GeForce GTX 1070) is auto selected.
+Vocab size: 952 132 20
+${word_out_of_pretrained_emb_count} is 2 !
+Training starts at Thu Sep 19 10:46:24 2019
+Training:	Epoch : 0	Time : 1.7209s	Loss of tag : 0.65	Loss of class : 0.85 
+Validation:	Epoch : 0	Time : 0.0782s	Loss : (0.21, 0.45)	Fscore : 86.68	cls-F1 : 89.00 
+Evaluation:	Epoch : 0	Time : 0.1255s	Loss : (0.27, 0.49)	Fscore : 84.61	cls-F1 : 89.36 
+NEW BEST:	Epoch : 0	best valid F1 : 86.68, cls-F1 : 89.00;	test F1 : 84.61, cls-F1 : 89.36
+Training:	Epoch : 1	Time : 1.6939s	Loss of tag : 0.18	Loss of class : 0.35 
+Validation:	Epoch : 1	Time : 0.0794s	Loss : (0.11, 0.27)	Fscore : 92.70	cls-F1 : 93.40 
+Evaluation:	Epoch : 1	Time : 0.1258s	Loss : (0.17, 0.28)	Fscore : 90.90	cls-F1 : 92.83 
+NEW BEST:	Epoch : 1	best valid F1 : 92.70, cls-F1 : 93.40;	test F1 : 90.90, cls-F1 : 92.83
+Training:	Epoch : 2	Time : 1.6965s	Loss of tag : 0.11	Loss of class : 0.23 
+Validation:	Epoch : 2	Time : 0.0779s	Loss : (0.09, 0.18)	Fscore : 93.89	cls-F1 : 95.80 
+Evaluation:	Epoch : 2	Time : 0.1259s	Loss : (0.14, 0.22)	Fscore : 93.46	cls-F1 : 95.52 
+NEW BEST:	Epoch : 2	best valid F1 : 93.89, cls-F1 : 95.80;	test F1 : 93.46, cls-F1 : 95.52
+Training:	Epoch : 3	Time : 1.6714s	Loss of tag : 0.08	Loss of class : 0.16 
+Validation:	Epoch : 3	Time : 0.0782s	Loss : (0.07, 0.15)	Fscore : 95.12	cls-F1 : 96.20 
+Evaluation:	Epoch : 3	Time : 0.1259s	Loss : (0.13, 0.16)	Fscore : 94.09	cls-F1 : 96.42 
+NEW BEST:	Epoch : 3	best valid F1 : 95.12, cls-F1 : 96.20;	test F1 : 94.09, cls-F1 : 96.42
+Training:	Epoch : 4	Time : 1.6671s	Loss of tag : 0.06	Loss of class : 0.12 
+Validation:	Epoch : 4	Time : 0.0780s	Loss : (0.06, 0.11)	Fscore : 96.47	cls-F1 : 97.40 
+Evaluation:	Epoch : 4	Time : 0.1254s	Loss : (0.13, 0.12)	Fscore : 94.84	cls-F1 : 97.42 
+NEW BEST:	Epoch : 4	best valid F1 : 96.47, cls-F1 : 97.40;	test F1 : 94.84, cls-F1 : 97.42
+Training:	Epoch : 5	Time : 1.6705s	Loss of tag : 0.04	Loss of class : 0.09 
+Validation:	Epoch : 5	Time : 0.0780s	Loss : (0.05, 0.11)	Fscore : 96.56	cls-F1 : 97.00 
+Evaluation:	Epoch : 5	Time : 0.1258s	Loss : (0.15, 0.11)	Fscore : 94.68	cls-F1 : 97.87 
+Training:	Epoch : 6	Time : 1.6716s	Loss of tag : 0.04	Loss of class : 0.08 
+Validation:	Epoch : 6	Time : 0.0777s	Loss : (0.05, 0.09)	Fscore : 97.22	cls-F1 : 98.00 
+Evaluation:	Epoch : 6	Time : 0.1255s	Loss : (0.14, 0.10)	Fscore : 95.06	cls-F1 : 98.43 
+NEW BEST:	Epoch : 6	best valid F1 : 97.22, cls-F1 : 98.00;	test F1 : 95.06, cls-F1 : 98.43
+Training:	Epoch : 7	Time : 1.6689s	Loss of tag : 0.03	Loss of class : 0.06 
+Validation:	Epoch : 7	Time : 0.0780s	Loss : (0.05, 0.12)	Fscore : 97.16	cls-F1 : 97.40 
+Evaluation:	Epoch : 7	Time : 0.1254s	Loss : (0.13, 0.13)	Fscore : 95.08	cls-F1 : 98.21 
+Training:	Epoch : 8	Time : 1.6664s	Loss of tag : 0.03	Loss of class : 0.06 
+Validation:	Epoch : 8	Time : 0.0778s	Loss : (0.05, 0.11)	Fscore : 97.32	cls-F1 : 98.00 
+Evaluation:	Epoch : 8	Time : 0.1251s	Loss : (0.14, 0.14)	Fscore : 95.33	cls-F1 : 97.98 
+NEW BEST:	Epoch : 8	best valid F1 : 97.32, cls-F1 : 98.00;	test F1 : 95.33, cls-F1 : 97.98
+Training:	Epoch : 9	Time : 1.6848s	Loss of tag : 0.02	Loss of class : 0.05 
+Validation:	Epoch : 9	Time : 0.0780s	Loss : (0.05, 0.12)	Fscore : 97.23	cls-F1 : 97.80 
+Evaluation:	Epoch : 9	Time : 0.1263s	Loss : (0.16, 0.13)	Fscore : 95.34	cls-F1 : 98.32 
+Training:	Epoch : 10	Time : 1.6786s	Loss of tag : 0.02	Loss of class : 0.04 
+Validation:	Epoch : 10	Time : 0.0778s	Loss : (0.04, 0.13)	Fscore : 97.64	cls-F1 : 97.80 
+Evaluation:	Epoch : 10	Time : 0.1251s	Loss : (0.14, 0.14)	Fscore : 95.50	cls-F1 : 98.21 
+NEW BEST:	Epoch : 10	best valid F1 : 97.64, cls-F1 : 97.80;	test F1 : 95.50, cls-F1 : 98.21
+Training:	Epoch : 11	Time : 1.6839s	Loss of tag : 0.02	Loss of class : 0.03 
+Validation:	Epoch : 11	Time : 0.0781s	Loss : (0.04, 0.14)	Fscore : 97.47	cls-F1 : 97.60 
+Evaluation:	Epoch : 11	Time : 0.1257s	Loss : (0.15, 0.15)	Fscore : 95.33	cls-F1 : 98.10 
+Training:	Epoch : 12	Time : 1.6589s	Loss of tag : 0.02	Loss of class : 0.03 
+Validation:	Epoch : 12	Time : 0.0779s	Loss : (0.04, 0.13)	Fscore : 97.81	cls-F1 : 98.20 
+Evaluation:	Epoch : 12	Time : 0.1259s	Loss : (0.15, 0.16)	Fscore : 95.64	cls-F1 : 97.98 
+NEW BEST:	Epoch : 12	best valid F1 : 97.81, cls-F1 : 98.20;	test F1 : 95.64, cls-F1 : 97.98
+Training:	Epoch : 13	Time : 1.6595s	Loss of tag : 0.01	Loss of class : 0.03 
+Validation:	Epoch : 13	Time : 0.0779s	Loss : (0.04, 0.14)	Fscore : 97.96	cls-F1 : 98.00 
+Evaluation:	Epoch : 13	Time : 0.1256s	Loss : (0.15, 0.14)	Fscore : 95.64	cls-F1 : 98.54 
+Training:	Epoch : 14	Time : 1.6569s	Loss of tag : 0.01	Loss of class : 0.02 
+Validation:	Epoch : 14	Time : 0.0776s	Loss : (0.04, 0.13)	Fscore : 97.75	cls-F1 : 98.20 
+Evaluation:	Epoch : 14	Time : 0.1254s	Loss : (0.16, 0.14)	Fscore : 95.48	cls-F1 : 98.32 
+Training:	Epoch : 15	Time : 1.6565s	Loss of tag : 0.01	Loss of class : 0.02 
+Validation:	Epoch : 15	Time : 0.0778s	Loss : (0.04, 0.12)	Fscore : 97.75	cls-F1 : 98.00 
+Evaluation:	Epoch : 15	Time : 0.1254s	Loss : (0.17, 0.15)	Fscore : 95.60	cls-F1 : 98.43 
+Training:	Epoch : 16	Time : 1.6542s	Loss of tag : 0.01	Loss of class : 0.02 
+Validation:	Epoch : 16	Time : 0.0781s	Loss : (0.04, 0.14)	Fscore : 97.98	cls-F1 : 97.80 
+Evaluation:	Epoch : 16	Time : 0.1255s	Loss : (0.17, 0.14)	Fscore : 95.53	cls-F1 : 98.54 
+Training:	Epoch : 17	Time : 1.6595s	Loss of tag : 0.01	Loss of class : 0.02 
+Validation:	Epoch : 17	Time : 0.0779s	Loss : (0.05, 0.16)	Fscore : 97.69	cls-F1 : 98.00 
+Evaluation:	Epoch : 17	Time : 0.1259s	Loss : (0.17, 0.16)	Fscore : 95.62	cls-F1 : 98.32 
+Training:	Epoch : 18	Time : 1.6501s	Loss of tag : 0.01	Loss of class : 0.02 
+Validation:	Epoch : 18	Time : 0.0783s	Loss : (0.04, 0.14)	Fscore : 97.69	cls-F1 : 97.80 
+Evaluation:	Epoch : 18	Time : 0.1258s	Loss : (0.18, 0.15)	Fscore : 95.66	cls-F1 : 98.32 
+Training:	Epoch : 19	Time : 1.6582s	Loss of tag : 0.01	Loss of class : 0.01 
+Validation:	Epoch : 19	Time : 0.0780s	Loss : (0.05, 0.16)	Fscore : 97.84	cls-F1 : 97.60 
+Evaluation:	Epoch : 19	Time : 0.1264s	Loss : (0.18, 0.14)	Fscore : 95.73	cls-F1 : 98.21 
+Training:	Epoch : 20	Time : 1.6713s	Loss of tag : 0.01	Loss of class : 0.01 
+Validation:	Epoch : 20	Time : 0.0775s	Loss : (0.05, 0.17)	Fscore : 97.90	cls-F1 : 98.00 
+Evaluation:	Epoch : 20	Time : 0.1246s	Loss : (0.19, 0.16)	Fscore : 95.73	cls-F1 : 98.43 
+Training:	Epoch : 21	Time : 1.6749s	Loss of tag : 0.01	Loss of class : 0.01 
+Validation:	Epoch : 21	Time : 0.0774s	Loss : (0.05, 0.15)	Fscore : 98.10	cls-F1 : 98.40 
+Evaluation:	Epoch : 21	Time : 0.1250s	Loss : (0.18, 0.15)	Fscore : 95.55	cls-F1 : 98.66 
+NEW BEST:	Epoch : 21	best valid F1 : 98.10, cls-F1 : 98.40;	test F1 : 95.55, cls-F1 : 98.66
+Training:	Epoch : 22	Time : 1.6941s	Loss of tag : 0.01	Loss of class : 0.01 
+Validation:	Epoch : 22	Time : 0.0774s	Loss : (0.04, 0.17)	Fscore : 98.13	cls-F1 : 97.60 
+Evaluation:	Epoch : 22	Time : 0.1244s	Loss : (0.18, 0.15)	Fscore : 95.83	cls-F1 : 98.66 
+Training:	Epoch : 23	Time : 1.6726s	Loss of tag : 0.01	Loss of class : 0.01 
+Validation:	Epoch : 23	Time : 0.0776s	Loss : (0.05, 0.17)	Fscore : 97.61	cls-F1 : 98.00 
+Evaluation:	Epoch : 23	Time : 0.1251s	Loss : (0.19, 0.15)	Fscore : 95.71	cls-F1 : 98.43 
+Training:	Epoch : 24	Time : 1.6702s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 24	Time : 0.0774s	Loss : (0.05, 0.16)	Fscore : 98.01	cls-F1 : 98.00 
+Evaluation:	Epoch : 24	Time : 0.1245s	Loss : (0.19, 0.15)	Fscore : 95.41	cls-F1 : 98.54 
+Training:	Epoch : 25	Time : 1.6667s	Loss of tag : 0.00	Loss of class : 0.02 
+Validation:	Epoch : 25	Time : 0.0774s	Loss : (0.05, 0.15)	Fscore : 97.72	cls-F1 : 97.80 
+Evaluation:	Epoch : 25	Time : 0.1255s	Loss : (0.20, 0.15)	Fscore : 95.58	cls-F1 : 98.43 
+Training:	Epoch : 26	Time : 1.6640s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 26	Time : 0.0776s	Loss : (0.05, 0.14)	Fscore : 97.75	cls-F1 : 98.00 
+Evaluation:	Epoch : 26	Time : 0.1246s	Loss : (0.19, 0.14)	Fscore : 95.71	cls-F1 : 98.43 
+Training:	Epoch : 27	Time : 1.6742s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 27	Time : 0.0774s	Loss : (0.05, 0.17)	Fscore : 97.84	cls-F1 : 97.80 
+Evaluation:	Epoch : 27	Time : 0.1246s	Loss : (0.20, 0.16)	Fscore : 95.67	cls-F1 : 98.43 
+Training:	Epoch : 28	Time : 1.6557s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 28	Time : 0.0772s	Loss : (0.05, 0.20)	Fscore : 97.87	cls-F1 : 97.80 
+Evaluation:	Epoch : 28	Time : 0.1242s	Loss : (0.20, 0.16)	Fscore : 95.66	cls-F1 : 98.54 
+Training:	Epoch : 29	Time : 1.6576s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 29	Time : 0.0778s	Loss : (0.05, 0.18)	Fscore : 97.66	cls-F1 : 98.20 
+Evaluation:	Epoch : 29	Time : 0.1253s	Loss : (0.19, 0.16)	Fscore : 95.76	cls-F1 : 98.66 
+Training:	Epoch : 30	Time : 1.6619s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 30	Time : 0.0773s	Loss : (0.06, 0.17)	Fscore : 97.46	cls-F1 : 97.60 
+Evaluation:	Epoch : 30	Time : 0.1243s	Loss : (0.20, 0.17)	Fscore : 95.67	cls-F1 : 98.43 
+Training:	Epoch : 31	Time : 1.6626s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 31	Time : 0.0775s	Loss : (0.05, 0.17)	Fscore : 97.58	cls-F1 : 98.00 
+Evaluation:	Epoch : 31	Time : 0.1246s	Loss : (0.20, 0.16)	Fscore : 95.57	cls-F1 : 98.54 
+Training:	Epoch : 32	Time : 1.6702s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 32	Time : 0.0774s	Loss : (0.05, 0.19)	Fscore : 97.90	cls-F1 : 97.80 
+Evaluation:	Epoch : 32	Time : 0.1246s	Loss : (0.21, 0.17)	Fscore : 95.55	cls-F1 : 98.54 
+Training:	Epoch : 33	Time : 1.6605s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 33	Time : 0.0774s	Loss : (0.05, 0.18)	Fscore : 97.83	cls-F1 : 97.80 
+Evaluation:	Epoch : 33	Time : 0.1254s	Loss : (0.21, 0.18)	Fscore : 95.60	cls-F1 : 98.32 
+Training:	Epoch : 34	Time : 1.6629s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 34	Time : 0.0778s	Loss : (0.05, 0.20)	Fscore : 97.81	cls-F1 : 97.80 
+Evaluation:	Epoch : 34	Time : 0.1248s	Loss : (0.21, 0.18)	Fscore : 95.79	cls-F1 : 98.43 
+Training:	Epoch : 35	Time : 1.6619s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 35	Time : 0.0775s	Loss : (0.05, 0.20)	Fscore : 97.98	cls-F1 : 97.80 
+Evaluation:	Epoch : 35	Time : 0.1254s	Loss : (0.21, 0.17)	Fscore : 95.55	cls-F1 : 98.66 
+Training:	Epoch : 36	Time : 1.6704s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 36	Time : 0.0773s	Loss : (0.05, 0.17)	Fscore : 98.04	cls-F1 : 98.00 
+Evaluation:	Epoch : 36	Time : 0.1246s	Loss : (0.22, 0.19)	Fscore : 95.66	cls-F1 : 98.21 
+Training:	Epoch : 37	Time : 1.6481s	Loss of tag : 0.00	Loss of class : 0.00 
+Validation:	Epoch : 37	Time : 0.0783s	Loss : (0.05, 0.23)	Fscore : 97.60	cls-F1 : 97.40 
+Evaluation:	Epoch : 37	Time : 0.1258s	Loss : (0.22, 0.18)	Fscore : 95.78	cls-F1 : 98.32 
+Training:	Epoch : 38	Time : 1.6625s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 38	Time : 0.0777s	Loss : (0.05, 0.18)	Fscore : 97.72	cls-F1 : 97.80 
+Evaluation:	Epoch : 38	Time : 0.1251s	Loss : (0.22, 0.19)	Fscore : 95.74	cls-F1 : 98.43 
+Training:	Epoch : 39	Time : 1.6545s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 39	Time : 0.0777s	Loss : (0.05, 0.18)	Fscore : 97.75	cls-F1 : 98.20 
+Evaluation:	Epoch : 39	Time : 0.1250s	Loss : (0.21, 0.19)	Fscore : 95.60	cls-F1 : 98.32 
+Training:	Epoch : 40	Time : 1.6543s	Loss of tag : 0.00	Loss of class : 0.00 
+Validation:	Epoch : 40	Time : 0.0778s	Loss : (0.05, 0.25)	Fscore : 97.87	cls-F1 : 97.80 
+Evaluation:	Epoch : 40	Time : 0.1256s	Loss : (0.23, 0.19)	Fscore : 95.75	cls-F1 : 98.43 
+Training:	Epoch : 41	Time : 1.6510s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 41	Time : 0.0779s	Loss : (0.06, 0.23)	Fscore : 97.92	cls-F1 : 97.80 
+Evaluation:	Epoch : 41	Time : 0.1260s	Loss : (0.24, 0.19)	Fscore : 95.72	cls-F1 : 98.32 
+Training:	Epoch : 42	Time : 1.6608s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 42	Time : 0.0779s	Loss : (0.06, 0.20)	Fscore : 98.36	cls-F1 : 97.80 
+Evaluation:	Epoch : 42	Time : 0.1253s	Loss : (0.25, 0.20)	Fscore : 95.67	cls-F1 : 98.32 
+Training:	Epoch : 43	Time : 1.6565s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 43	Time : 0.0780s	Loss : (0.06, 0.21)	Fscore : 97.90	cls-F1 : 97.60 
+Evaluation:	Epoch : 43	Time : 0.1257s	Loss : (0.23, 0.22)	Fscore : 95.57	cls-F1 : 97.98 
+Training:	Epoch : 44	Time : 1.6556s	Loss of tag : 0.00	Loss of class : 0.00 
+Validation:	Epoch : 44	Time : 0.0780s	Loss : (0.06, 0.21)	Fscore : 97.63	cls-F1 : 97.80 
+Evaluation:	Epoch : 44	Time : 0.1254s	Loss : (0.23, 0.21)	Fscore : 95.53	cls-F1 : 97.98 
+Training:	Epoch : 45	Time : 1.6660s	Loss of tag : 0.00	Loss of class : 0.00 
+Validation:	Epoch : 45	Time : 0.0777s	Loss : (0.06, 0.23)	Fscore : 97.98	cls-F1 : 97.40 
+Evaluation:	Epoch : 45	Time : 0.1258s	Loss : (0.24, 0.21)	Fscore : 95.65	cls-F1 : 97.98 
+Training:	Epoch : 46	Time : 1.6630s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 46	Time : 0.0779s	Loss : (0.06, 0.19)	Fscore : 97.72	cls-F1 : 97.80 
+Evaluation:	Epoch : 46	Time : 0.1254s	Loss : (0.23, 0.17)	Fscore : 95.78	cls-F1 : 98.21 
+Training:	Epoch : 47	Time : 1.6521s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 47	Time : 0.0777s	Loss : (0.05, 0.22)	Fscore : 98.13	cls-F1 : 97.80 
+Evaluation:	Epoch : 47	Time : 0.1251s	Loss : (0.23, 0.17)	Fscore : 95.67	cls-F1 : 98.54 
+Training:	Epoch : 48	Time : 1.6657s	Loss of tag : 0.00	Loss of class : 0.01 
+Validation:	Epoch : 48	Time : 0.0781s	Loss : (0.06, 0.19)	Fscore : 98.13	cls-F1 : 98.20 
+Evaluation:	Epoch : 48	Time : 0.1259s	Loss : (0.23, 0.20)	Fscore : 95.73	cls-F1 : 98.21 
+Training:	Epoch : 49	Time : 1.6788s	Loss of tag : 0.00	Loss of class : 0.00 
+Validation:	Epoch : 49	Time : 0.0777s	Loss : (0.06, 0.22)	Fscore : 97.93	cls-F1 : 97.80 
+Evaluation:	Epoch : 49	Time : 0.1254s	Loss : (0.22, 0.20)	Fscore : 95.64	cls-F1 : 98.32 
+BEST RESULT: 	Epoch : 21	best valid (Loss: (0.05, 0.15) F1 : 98.10 cls-F1 : 98.40)	best test (Loss: (0.18, 0.15) F1 : 95.55 cls-F1 : 98.66) 
