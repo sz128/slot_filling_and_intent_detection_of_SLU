@@ -209,5 +209,11 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | Pure BERT | 46.96 |
     | Pure BERT-CRF | 47.75 |
 
+## Inference Mode
+An example here:
+```
+bash run/atis_with_pretrained_word_embeddings_for_inference_mode__an_example.sh
+```
+
 ## Reference
  * Su Zhu and Kai Yu, "Encoder-decoder with focus-mechanism for sequence labelling based spoken language understanding," in IEEE International Conference on Acoustics, Speech and Signal Processing(ICASSP), 2017, pp. 5675-5679.
