@@ -13,6 +13,7 @@ dataroot=data/CoNLL2003_NER
 dataset=CoNLL2003_NER
 
 batch_size=32 # 16, 32
+gradient_accumulation_steps=2
 
 optimizer=bertadam #bertadam, adamw, adam, sgd
 learning_rate=5e-5 # 1e-5, 5e-5, 1e-4, 1e-3
@@ -26,4 +27,4 @@ device=0
 # Set deviceId=-1 if you are going to use cpu for training.
 experiment_output_path=exp
 
-python scripts/slot_tagging_and_intent_detection_with_pure_transformer.py --task_st $task_slot_filling --task_sc $task_intent_detection --dataset $dataset --dataroot $dataroot --lr $learning_rate --dropout $dropout_rate --batchSize $batch_size --optim $optimizer --max_norm $max_norm_of_gradient_clip --experiment $experiment_output_path --deviceId $device --max_epoch $max_epoch --st_weight ${balance_weight} --pretrained_model_type ${pretrained_model_type} --pretrained_model_name ${pretrained_model_name}
+python scripts/slot_tagging_and_intent_detection_with_pure_transformer.py --task_st $task_slot_filling --task_sc $task_intent_detection --dataset $dataset --dataroot $dataroot --lr $learning_rate --dropout $dropout_rate --batchSize $batch_size --gradient_accumulation_steps ${gradient_accumulation_steps} --optim $optimizer --max_norm $max_norm_of_gradient_clip --experiment $experiment_output_path --deviceId $device --max_epoch $max_epoch --st_weight ${balance_weight} --pretrained_model_type ${pretrained_model_type} --pretrained_model_name ${pretrained_model_name}

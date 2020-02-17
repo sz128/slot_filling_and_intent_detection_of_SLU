@@ -63,6 +63,7 @@ parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
 parser.add_argument('--dropout', type=float, default=0., help='dropout rate at each non-recurrent layer')
 parser.add_argument('--batchSize', type=int, default=64, help='input batch size')
 parser.add_argument('--test_batchSize', type=int, default=0, help='input batch size in decoding')
+parser.add_argument('--gradient_accumulation_steps', type=int, default=1, help='Number of updates steps to accumulate before performing a backward/update pass.')
 parser.add_argument('--init_weight', type=float, default=0.2, help='all weights will be set to [-init_weight, init_weight] during initialization')
 parser.add_argument('--max_norm', type=float, default=5, help="threshold of gradient clipping (2-norm)")
 parser.add_argument('--max_epoch', type=int, default=50, help='max number of epochs to train for')
@@ -76,6 +77,7 @@ assert opt.testing == bool(opt.out_path) == bool(opt.read_model) ==  bool(opt.re
 
 if opt.test_batchSize == 0:
     opt.test_batchSize = opt.batchSize
+assert opt.batchSize % opt.gradient_accumulation_steps == 0
 
 assert opt.task_st in {'NN', 'NN_crf'}
 assert opt.task_sc in {'none', 'CLS', 'max', 'CLS_max'}
@@ -246,7 +248,7 @@ def decode(data_feats, data_tags, data_class, output_path):
     losses = []
     TP, FP, FN, TN = 0.0, 0.0, 0.0, 0.0
     TP2, FP2, FN2, TN2 = 0.0, 0.0, 0.0, 0.0
-    with open(output_path, 'w') as f:
+    with open(output_path, 'w') as f, torch.no_grad():
         for j in range(0, len(data_index), opt.test_batchSize):
             if opt.testing:
                 words, tags, raw_tags, classes, raw_classes, lens, line_nums = data_reader.get_minibatch_with_class(data_feats, data_tags, data_class, tag_to_idx, class_to_idx, data_index, j, opt.test_batchSize, add_start_end=opt.bos_eos, multiClass=opt.multiClass, keep_order=opt.testing, enc_dec_focus=False, device=opt.device)
@@ -361,8 +363,9 @@ if not opt.testing:
         
         nsentences = len(train_data_index)
         piece_sentences = opt.batchSize if int(nsentences * 0.1 / opt.batchSize) == 0 else int(nsentences * 0.1 / opt.batchSize) * opt.batchSize
-        for j in range(0, nsentences, opt.batchSize):
-            words, tags, raw_tags, classes, raw_classes, lens = data_reader.get_minibatch_with_class(train_feats['data'], train_tags['data'], train_class['data'], tag_to_idx, class_to_idx, train_data_index, j, opt.batchSize, add_start_end=opt.bos_eos, multiClass=opt.multiClass, enc_dec_focus=False, device=opt.device)
+        step = 0
+        for j in range(0, nsentences, opt.batchSize // opt.gradient_accumulation_steps):
+            words, tags, raw_tags, classes, raw_classes, lens = data_reader.get_minibatch_with_class(train_feats['data'], train_tags['data'], train_class['data'], tag_to_idx, class_to_idx, train_data_index, j, opt.batchSize // opt.gradient_accumulation_steps, add_start_end=opt.bos_eos, multiClass=opt.multiClass, enc_dec_focus=False, device=opt.device)
             inputs = prepare_inputs_for_bert_xlnet(words, lens, tokenizer, 
                     cls_token_at_end=bool(opt.pretrained_model_type in ['xlnet']),  # xlnet has a cls token at the end
                     cls_token=tokenizer.cls_token,
@@ -371,7 +374,8 @@ if not opt.testing:
                     pad_on_left=bool(opt.pretrained_model_type in ['xlnet']), # pad on the left for xlnet
                     pad_token_segment_id=4 if opt.pretrained_model_type in ['xlnet'] else 0,
                     device=opt.device)
-            optimizer.zero_grad()
+            if step % opt.gradient_accumulation_steps == 0:
+                optimizer.zero_grad()
             if opt.task_st == 'NN':
                 tag_scores, class_scores = model_tag_and_class(inputs, lens)
                 tag_loss = tag_loss_function(tag_scores.contiguous().view(-1, len(tag_to_idx)), tags.view(-1))
@@ -390,13 +394,16 @@ if not opt.testing:
                 total_loss = tag_loss
             total_loss.backward()
             
-            # Clips gradient norm of an iterable of parameters.
-            if opt.optim.lower() != 'bertadam' and opt.max_norm > 0:
-                torch.nn.utils.clip_grad_norm_(params, opt.max_norm)
+            if (step + 1) % opt.gradient_accumulation_steps == 0:
+                # Clips gradient norm of an iterable of parameters.
+                if opt.optim.lower() != 'bertadam' and opt.max_norm > 0:
+                    torch.nn.utils.clip_grad_norm_(params, opt.max_norm)
 
-            if opt.optim.lower() == 'adamw':
-                scheduler.step()
-            optimizer.step()
+                if opt.optim.lower() == 'adamw':
+                    scheduler.step()
+                optimizer.step()
+            
+            step += 1
 
             if j % piece_sentences == 0:
                 print('[learning] epoch %i >> %2.2f%%'%(i,(j+opt.batchSize)*100./nsentences),'completed in %.2f (sec) <<\r'%(time.time()-start_time), end='')
