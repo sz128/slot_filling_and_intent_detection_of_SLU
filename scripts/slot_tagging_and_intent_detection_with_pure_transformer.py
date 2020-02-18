@@ -15,7 +15,7 @@ sys.path.append(install_path)
 #from pytorch_pretrained_bert import BertTokenizer, BertModel
 #from pytorch_pretrained_bert.optimization import BertAdam, WarmupLinearSchedule
 from transformers import BertTokenizer, BertModel, XLNetTokenizer, XLNetModel 
-from transformers.optimization import AdamW, WarmupLinearSchedule
+from transformers import AdamW, get_linear_schedule_with_warmup
 from models.optimization import BertAdam
 from utils.bert_xlnet_inputs import prepare_inputs_for_bert_xlnet
 
@@ -204,12 +204,12 @@ else:
 # loss function
 weight_mask = torch.ones(len(tag_to_idx), device=opt.device)
 weight_mask[tag_to_idx['<pad>']] = 0
-tag_loss_function = nn.NLLLoss(weight=weight_mask, size_average=False)
+tag_loss_function = nn.NLLLoss(weight=weight_mask, reduction='sum') #sum; mean
 if opt.task_sc:
     if opt.multiClass:
-        class_loss_function = nn.BCELoss(size_average=False)
+        class_loss_function = nn.BCELoss(reduction='sum')
     else:
-        class_loss_function = nn.NLLLoss(size_average=False)
+        class_loss_function = nn.NLLLoss(reduction='sum')
 
 # optimizer
 if opt.optim.lower() == 'sgd':
@@ -228,18 +228,20 @@ elif opt.optim.lower() == 'bertadam':
         ]
     num_train_optimization_steps = len(train_feats['data']) // opt.batchSize * opt.max_epoch
     optimizer = BertAdam(optimizer_grouped_parameters, lr=opt.lr, warmup=opt.warmup_proportion, t_total=num_train_optimization_steps)
+    print("total steps %d; warmup_proportion %.2f" % (num_train_optimization_steps, opt.warmup_proportion))
 elif opt.optim.lower() == 'adamw':
     params = list(filter(lambda p: p.requires_grad, model_tag_and_class.parameters()))
     named_params = list(model_tag_and_class.named_parameters())
     named_params = list(filter(lambda p: p[1].requires_grad, named_params))
-    no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+    no_decay = ['bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
         {'params': [p for n, p in named_params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
         {'params': [p for n, p in named_params if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
         ]
     num_train_optimization_steps = len(train_feats['data']) // opt.batchSize * opt.max_epoch
-    optimizer = AdamW(optimizer_grouped_parameters, lr=opt.lr, correct_bias=False)  # To reproduce BertAdam specific behavior set correct_bias=False
-    scheduler = WarmupLinearSchedule(optimizer, warmup_steps=int(opt.warmup_proportion * num_train_optimization_steps), t_total=num_train_optimization_steps)  # PyTorch scheduler
+    opt.adam_epsilon = 1e-6
+    optimizer = AdamW(optimizer_grouped_parameters, lr=opt.lr, eps=opt.adam_epsilon)  # To reproduce BertAdam specific behavior set correct_bias=False
+    scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=int(opt.warmup_proportion * num_train_optimization_steps), num_training_steps=num_train_optimization_steps)  # PyTorch scheduler
 
 # prepare_inputs_for_bert(sentences, word_lengths)
 
