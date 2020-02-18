@@ -16,7 +16,7 @@ batch_size=32 # 16, 32
 gradient_accumulation_steps=2
 
 optimizer=adamw #bertadam #bertadam, adamw, adam, sgd
-learning_rate=2e-5 # 1e-5, 5e-5, 1e-4, 1e-3
+learning_rate=5e-5 # 1e-5, 5e-5, 1e-4, 1e-3
 max_norm_of_gradient_clip=1 # working for adamw, adam, sgd
 dropout_rate=0.1 # 0.1, 0.5
 
