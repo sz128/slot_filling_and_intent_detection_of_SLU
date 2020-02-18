@@ -4,7 +4,7 @@
    * An implementation of BLSTM-CRF based on [jiesutd/NCRFpp](https://github.com/jiesutd/NCRFpp/blob/master/model/crf.py)
    * An implementation of joint training of slot filling and intent detection tasks [(Bing Liu and Ian Lane, 2016)](https://arxiv.org/abs/1609.01454).
  * Basic models + [ELMo](https://arxiv.org/abs/1802.05365) / [BERT](https://github.com/google-research/bert) / [XLNET](https://github.com/zihangdai/xlnet)
- * Tutorials on [ATIS](https://github.com/yvchen/JointSLU), [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines) and [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent) and [E-commerce Shopping Assistant (ECSA) from Alibaba](https://github.com/pangolulu/DCMTL)(w/o intent, in Chinese) datasets.
+ * Tutorials on [ATIS](https://github.com/yvchen/JointSLU), [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines), [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent), [E-commerce Shopping Assistant (ECSA) from Alibaba](https://github.com/pangolulu/DCMTL)(w/o intent, in Chinese) and [CoNLL-2003 NER](https://github.com/kamalkraj/BERT-NER/tree/dev/data)(w/o intent) datasets.
  
  <img src="./figs/data_annotation_ATIS.png" width="750" alt="data annotation"/>
 
@@ -208,6 +208,13 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | [Basic BiLSTM-CRF](https://arxiv.org/pdf/1803.11326.pdf) | 43.02 |
     | Pure BERT | 46.96 |
     | Pure BERT-CRF | 47.75 |
+
+ 5. Entity F1-scores of [CoNLL-2003 NER](https://github.com/kamalkraj/BERT-NER/tree/dev/data)(w/o intent):
+    
+    | models | F1-score (%) |
+    |:------:|------|
+    | Pure BERT | 91.36 |
+    | Pure BERT-CRF | 91.55 |
 
 ## Inference Mode
 An example here:
