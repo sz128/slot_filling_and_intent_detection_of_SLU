@@ -1,0 +1,17 @@
+B-datetime
+B-location
+B-reminder__noun
+B-reminder__recurring_period
+B-reminder__reference
+B-reminder__todo
+B-weather__attribute
+B-weather__noun
+I-datetime
+I-location
+I-reminder__noun
+I-reminder__recurring_period
+I-reminder__reference
+I-reminder__todo
+I-weather__attribute
+I-weather__noun
+O

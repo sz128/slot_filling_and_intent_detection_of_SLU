@@ -1,0 +1,10 @@
+alarm__cancel_alarm
+alarm__modify_alarm
+alarm__set_alarm
+alarm__show_alarms
+alarm__snooze_alarm
+alarm__time_left_on_alarm
+reminder__cancel_reminder
+reminder__set_reminder
+reminder__show_reminders
+weather__find
