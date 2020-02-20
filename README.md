@@ -4,7 +4,7 @@
    * An implementation of BLSTM-CRF based on [jiesutd/NCRFpp](https://github.com/jiesutd/NCRFpp/blob/master/model/crf.py)
    * An implementation of joint training of slot filling and intent detection tasks [(Bing Liu and Ian Lane, 2016)](https://arxiv.org/abs/1609.01454).
  * Basic models + [ELMo](https://arxiv.org/abs/1802.05365) / [BERT](https://github.com/google-research/bert) / [XLNET](https://github.com/zihangdai/xlnet)
- * Tutorials on [ATIS](https://github.com/yvchen/JointSLU), [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines), [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent), [E-commerce Shopping Assistant (ECSA) from Alibaba](https://github.com/pangolulu/DCMTL)(w/o intent, in Chinese) and [CoNLL-2003 NER](https://github.com/kamalkraj/BERT-NER/tree/dev/data)(w/o intent) datasets.
+ * Tutorials on [ATIS](https://github.com/yvchen/JointSLU), [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines), [the Facebook’s multilingual dataset](https://fb.me/multilingual_task_oriented_data), [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent), [E-commerce Shopping Assistant (ECSA) from Alibaba](https://github.com/pangolulu/DCMTL)(w/o intent, in Chinese), and [CoNLL-2003 NER](https://github.com/kamalkraj/BERT-NER/tree/dev/data)(w/o intent) datasets.
  
  <img src="./figs/data_annotation_ATIS.png" width="750" alt="data annotation"/>
 
@@ -186,8 +186,36 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | BLSTM-CRF (C. +BERT) | 98.86 | 97.00 | 
     | Enc-dec focus (C. +BERT) | 98.71 | **97.17** | 
     | BLSTM (D. +XLNET) | 98.86 | 97.05 |
+ 
+ 3. Results of [the Facebook’s multilingual dataset](https://fb.me/multilingual_task_oriented_data):
+    - English (en):
     
- 3. Slot F1-scores of [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent):
+    | models | intent Acc (%) | slot F1-score (%) |
+    |:------:|------|-------|
+    | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (only target) | 99.11 | 94.81 |
+    | BLSTM (no Pre-train word emb.) | 99.19 | 95.37 |
+    | Pure BERT | 99.34 | 96.23 |
+    
+    - Spanish (es):
+    
+    | models | intent Acc (%) | slot F1-score (%) |
+    |:------:|------|-------|
+    | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (only target) | 97.26 | 80.95 |
+    | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (Cross-lingual + ELMo) | 97.51 | 83.38 |
+    | BLSTM (no Pre-train word emb.) | 97.63 | 86.05 |
+    | Pure BERT | 98.85 | 89.26 |
+    
+    - Thai (th):
+    
+    | models | intent Acc (%) | slot F1-score (%) |
+    |:------:|------|-------|
+    | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (only target) | 95.13 | 87.26 |
+    | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (Cross-lingual + Mult. CoVe + auto) | 96.87 | 91.51 |
+    | BLSTM (no Pre-train word emb.) | 96.99 | 89.17 |
+    | Pure BERT | 97.34 | 92.51 |
+    
+ 
+ 4. Slot F1-scores of [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent):
     
     | models | Restaurant | Movie_eng | Movie_trivia10k13 |
     |:------:|------|-------|-------|
@@ -201,7 +229,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | BLSTM-CRF (A. Pre-train word emb. of Glove & KazumaChar) | 79.84 | **87.61** | **71.90** |
     | Enc-dec focus (A. Pre-train word emb. of Glove & KazumaChar) | **79.98** | 86.82 | 71.10 |
 
- 4. Slot F1-scores of [E-commerce Shopping Assistant (ECSA) from Alibaba](https://github.com/pangolulu/DCMTL)(w/o intent, in Chinese):
+ 5. Slot F1-scores of [E-commerce Shopping Assistant (ECSA) from Alibaba](https://github.com/pangolulu/DCMTL)(w/o intent, in Chinese):
     
     | models | slot F1-score (%) |
     |:------:|------|
@@ -209,7 +237,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | Pure BERT | 46.96 |
     | Pure BERT-CRF | 47.75 |
 
- 5. Entity F1-scores of [CoNLL-2003 NER](https://github.com/kamalkraj/BERT-NER/tree/dev/data)(w/o intent):
+ 6. Entity F1-scores of [CoNLL-2003 NER](https://github.com/kamalkraj/BERT-NER/tree/dev/data)(w/o intent):
     
     | models | F1-score (%) |
     |:------:|------|
