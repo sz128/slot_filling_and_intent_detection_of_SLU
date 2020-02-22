@@ -10,11 +10,11 @@
 
 ## Setup
  * python 3.6.x
- * [pytorch](https://pytorch.org/) 1.1
+ * [pytorch](https://pytorch.org/) 1.4.0
  * pip install gpustat     [if gpu is used]
  * [embeddings](https://github.com/vzhong/embeddings): pip install embeddings
  * [ELMo in allennlp](https://github.com/allenai/allennlp): pip install allennlp
- * [BERT/XLNET in transformers](https://github.com/huggingface/transformers): pip install transformers
+ * [BERT/XLNET in transformers](https://github.com/huggingface/transformers): pip install transformers (2.5.0)
  
 ## About the evaluations of intent detection on ATIS and SNIPS datasets.
 
