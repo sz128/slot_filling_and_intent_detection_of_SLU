@@ -15,7 +15,7 @@ sys.path.append(install_path)
 #from pytorch_pretrained_bert import BertTokenizer, BertModel
 #from pytorch_pretrained_bert.optimization import BertAdam, WarmupLinearSchedule
 from transformers import BertTokenizer, BertModel, XLNetTokenizer, XLNetModel 
-from transformers.optimization import AdamW, WarmupLinearSchedule
+from transformers import AdamW, get_linear_schedule_with_warmup
 from models.optimization import BertAdam
 from utils.bert_xlnet_inputs import prepare_inputs_for_bert_xlnet
 
@@ -295,7 +295,7 @@ elif opt.optim.lower() == 'adamw':
         ]
     num_train_optimization_steps = len(train_feats['data']) // opt.batchSize * opt.max_epoch
     optimizer = AdamW(optimizer_grouped_parameters, lr=opt.lr, correct_bias=False)  # To reproduce BertAdam specific behavior set correct_bias=False
-    scheduler = WarmupLinearSchedule(optimizer, warmup_steps=int(opt.warmup_proportion * num_train_optimization_steps), t_total=num_train_optimization_steps)  # PyTorch scheduler
+    scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=int(opt.warmup_proportion * num_train_optimization_steps), num_training_steps=num_train_optimization_steps)  # PyTorch scheduler
 
 # prepare_inputs_for_bert(sentences, word_lengths)
 
@@ -336,7 +336,7 @@ def decode(data_feats, data_tags, data_class, output_path):
             elif opt.crf:
                 max_len = max(lens)
                 masks = [([1] * l) + ([0] * (max_len - l)) for l in lens]
-                masks = torch.tensor(masks, dtype=torch.uint8, device=opt.device)
+                masks = torch.tensor(masks, dtype=torch.bool, device=opt.device)
                 crf_feats, encoder_info = model_tag._get_lstm_features(inputs, lens, with_snt_classifier=True)
                 tag_path_scores, tag_path = model_tag.forward(crf_feats, masks)
                 tag_loss = model_tag.neg_log_likelihood(crf_feats, masks, tags)
@@ -454,7 +454,7 @@ if not opt.testing:
             elif opt.crf:
                 max_len = max(lens)
                 masks = [([1] * l) + ([0] * (max_len - l)) for l in lens]
-                masks = torch.tensor(masks, dtype=torch.uint8, device=opt.device)
+                masks = torch.tensor(masks, dtype=torch.bool, device=opt.device)
                 crf_feats, encoder_info = model_tag._get_lstm_features(inputs, lens, with_snt_classifier=True)
                 tag_loss = model_tag.neg_log_likelihood(crf_feats, masks, tags)
             else:

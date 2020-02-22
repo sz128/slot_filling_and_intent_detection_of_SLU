@@ -133,7 +133,7 @@ class sntClassifier_hiddenPooling(nn.Module):
                 ([0] * l) + ([1] * (max_len - l))
                 for l in lens
                 ]
-            mask = torch.tensor(mask, dtype=torch.uint8, device=self.device)
+            mask = torch.tensor(mask, dtype=torch.bool, device=self.device)
             mask = mask.unsqueeze(2).repeat(1, 1, lstm_out.size(2))
             #lstm_out.data.masked_fill_(mask, -float('inf'))
             lstm_out_pool = lstm_out.max(1)[0].squeeze(1)
@@ -341,7 +341,7 @@ class sntClassifier_hiddenAttention(nn.Module):
             ([0] * l) + ([1] * (max_len - l))
             for l in lens
             ]
-        mask = torch.tensor(mask, dtype=torch.uint8, device=self.device)
+        mask = torch.tensor(mask, dtype=torch.bool, device=self.device)
         e.masked_fill_(mask, -float('inf'))
         a = F.softmax(e, dim=1)
 

@@ -240,7 +240,7 @@ elif opt.optim.lower() == 'adamw':
         ]
     num_train_optimization_steps = len(train_feats['data']) // opt.batchSize * opt.max_epoch
     opt.adam_epsilon = 1e-6
-    optimizer = AdamW(optimizer_grouped_parameters, lr=opt.lr, eps=opt.adam_epsilon)  # To reproduce BertAdam specific behavior set correct_bias=False
+    optimizer = AdamW(optimizer_grouped_parameters, lr=opt.lr, eps=opt.adam_epsilon, correct_bias=False)  # To reproduce BertAdam specific behavior set correct_bias=False
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=int(opt.warmup_proportion * num_train_optimization_steps), num_training_steps=num_train_optimization_steps)  # PyTorch scheduler
 
 # prepare_inputs_for_bert(sentences, word_lengths)
@@ -273,7 +273,7 @@ def decode(data_feats, data_tags, data_class, output_path):
             else:
                 max_len = max(lens)
                 masks = [([1] * l) + ([0] * (max_len - l)) for l in lens]
-                masks = torch.tensor(masks, dtype=torch.uint8, device=opt.device)
+                masks = torch.tensor(masks, dtype=torch.bool, device=opt.device)
                 crf_feats, class_scores = model_tag_and_class(inputs, lens)
                 tag_path_scores, tag_path = model_tag_and_class.crf_viterbi_decode(crf_feats, masks)
                 tag_loss = model_tag_and_class.crf_neg_log_likelihood(crf_feats, masks, tags)
@@ -384,7 +384,7 @@ if not opt.testing:
             else:
                 max_len = max(lens)
                 masks = [([1] * l) + ([0] * (max_len - l)) for l in lens]
-                masks = torch.tensor(masks, dtype=torch.uint8, device=opt.device)
+                masks = torch.tensor(masks, dtype=torch.bool, device=opt.device)
                 crf_feats, class_scores = model_tag_and_class(inputs, lens)
                 tag_loss = model_tag_and_class.crf_neg_log_likelihood(crf_feats, masks, tags)
             if opt.task_sc:

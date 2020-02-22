@@ -275,7 +275,7 @@ def decode(data_feats, data_tags, data_class, output_path):
             elif opt.crf:
                 max_len = max(lens)
                 masks = [([1] * l) + ([0] * (max_len - l)) for l in lens]
-                masks = torch.tensor(masks, dtype=torch.uint8, device=opt.device)
+                masks = torch.tensor(masks, dtype=torch.bool, device=opt.device)
                 crf_feats, encoder_info = model_tag._get_lstm_features(inputs, lens, with_snt_classifier=True)
                 tag_path_scores, tag_path = model_tag.forward(crf_feats, masks)
                 tag_loss = model_tag.neg_log_likelihood(crf_feats, masks, tags)
@@ -384,7 +384,7 @@ if not opt.testing:
             elif opt.crf:
                 max_len = max(lens)
                 masks = [([1] * l) + ([0] * (max_len - l)) for l in lens]
-                masks = torch.tensor(masks, dtype=torch.uint8, device=opt.device)
+                masks = torch.tensor(masks, dtype=torch.bool, device=opt.device)
                 crf_feats, encoder_info = model_tag._get_lstm_features(inputs, lens, with_snt_classifier=True)
                 tag_loss = model_tag.neg_log_likelihood(crf_feats, masks, tags)
             else:
