@@ -2,8 +2,8 @@
 
 source ./path.sh
 
-task_slot_filling=$1 # NN, NN_crf
-task_intent_detection=$2 # CLS, max, CLS_max
+task_slot_filling=NN # NN, NN_crf
+task_intent_detection=CLS # CLS, max, CLS_max
 balance_weight=1 #0.5
 
 pretrained_model_type=bert
@@ -25,5 +25,7 @@ device=0
 # device=0 means auto-choosing a GPU
 # Set deviceId=-1 if you are going to use cpu for training.
 experiment_output_path=exp
+
+source ./utils/parse_options.sh
 
 python scripts/slot_tagging_and_intent_detection_with_pure_transformer.py --task_st $task_slot_filling --task_sc $task_intent_detection --dataset $dataset --dataroot $dataroot --lr $learning_rate --dropout $dropout_rate --batchSize $batch_size --optim $optimizer --max_norm $max_norm_of_gradient_clip --experiment $experiment_output_path --deviceId $device --max_epoch $max_epoch --st_weight ${balance_weight} --pretrained_model_type ${pretrained_model_type} --pretrained_model_name ${pretrained_model_name}

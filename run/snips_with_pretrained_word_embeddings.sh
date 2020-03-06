@@ -2,7 +2,7 @@
 
 source ./path.sh
 
-task_slot_filling=$1 #slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
+task_slot_filling=slot_tagger_with_focus #slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
 task_intent_detection=hiddenAttention # none, hiddenAttention, hiddenCNN, maxPooling, 2tails
 balance_weight=0.5
 
@@ -33,6 +33,8 @@ device=0
 # device=0 means auto-choosing a GPU
 # Set deviceId=-1 if you are going to use cpu for training.
 experiment_output_path=exp
+
+source ./utils/parse_options.sh
 
 if [[ $word_lowercase != true && $word_lowercase != True ]]; then
   unset word_lowercase
