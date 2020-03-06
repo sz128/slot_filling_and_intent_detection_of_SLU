@@ -26,7 +26,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
  * Add char-embeddings
 
 ## Tutorials A: Slot filling and intent detection with pretrained word embeddings
- 1. Pretrained word embeddings are borrowed from CNN-BLSTM language models of [ELMo](https://github.com/allenai/allennlp/blob/master/tutorials/how_to/elmo.md) where word embeddings are modelled by char-CNNs. We extract the pretrained word embeddings for [ATIS](https://github.com/yvchen/JointSLU), [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines) and [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent) datasets by:
+ 1. Pretrained word embeddings are borrowed from CNN-BLSTM language models of [ELMo](https://github.com/allenai/allennlp/blob/master/tutorials/how_to/elmo.md) where word embeddings are modelled by char-CNNs. We extract the pretrained word embeddings for [ATIS](https://github.com/yvchen/JointSLU), [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines), [the Facebook’s multilingual dataset](https://fb.me/multilingual_task_oriented_data) and [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent) datasets by:
  ```sh
    python3 scripts/get_ELMo_word_embedding_for_a_dataset.py \
            --in_files data/atis-2/{train,valid,test} \
@@ -53,25 +53,36 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
            --in_files data/MIT_corpus/{movie_eng,movie_trivia10k13,restaurant}/{train,valid,test} \
            --output_word2vec local/word_embeddings/glove-kazumachar_400_cased_for_MIT_corpus.txt
 ```
+, or use word embeddings in the pretrained BERT model:
+```sh
+  python3 scripts/get_BERT_word_embedding_for_a_dataset.py \
+          --in_files data/multilingual_task_oriented_data/es/{train,valid,test} \
+          --output_word2vec local/word_embeddings/bert_768_cased_for_multilingual_es.txt \
+          --pretrained_tf_type bert --pretrained_tf_name bert-base-multilingual-cased
+  python3 scripts/get_BERT_word_embedding_for_a_dataset.py \
+          --in_files data/multilingual_task_oriented_data/es/{train,valid,test} \
+          --output_word2vec local/word_embeddings/bert_768_cased_for_multilingual_es.txt \
+          --pretrained_tf_type bert --pretrained_tf_name bert-base-multilingual-cased
+```
 
  2. Run scripts of training and evaluation at each epoch.
    * BLSTM model: 
    ```sh
-   bash run/atis_with_pretrained_word_embeddings.sh slot_tagger
-   bash run/snips_with_pretrained_word_embeddings.sh slot_tagger
-   bash run/MIT_corpus_with_pretrained_word_embeddings.sh slot_tagger
+   bash run/atis_with_pretrained_word_embeddings.sh --task_slot_filling slot_tagger
+   bash run/snips_with_pretrained_word_embeddings.sh --task_slot_filling slot_tagger
+   bash run/MIT_corpus_with_pretrained_word_embeddings.sh --task_slot_filling slot_tagger
    ```
    * BLSTM-CRF model: 
    ```sh
-   bash run/atis_with_pretrained_word_embeddings.sh slot_tagger_with_crf
-   bash run/snips_with_pretrained_word_embeddings.sh slot_tagger_with_crf
-   bash run/MIT_corpus_with_pretrained_word_embeddings.sh slot_tagger_with_crf
+   bash run/atis_with_pretrained_word_embeddings.sh --task_slot_filling slot_tagger_with_crf
+   bash run/snips_with_pretrained_word_embeddings.sh --task_slot_filling slot_tagger_with_crf
+   bash run/MIT_corpus_with_pretrained_word_embeddings.sh --task_slot_filling slot_tagger_with_crf
    ```
    * Enc-dec focus model (BLSTM-LSTM), the same as Encoder-Decoder NN (with aligned inputs)(Liu and Lane, 2016): 
    ```sh
-   bash run/atis_with_pretrained_word_embeddings.sh slot_tagger_with_focus
-   bash run/snips_with_pretrained_word_embeddings.sh slot_tagger_with_focus
-   bash run/MIT_corpus_with_pretrained_word_embeddings.sh slot_tagger_with_focus
+   bash run/atis_with_pretrained_word_embeddings.sh --task_slot_filling slot_tagger_with_focus
+   bash run/snips_with_pretrained_word_embeddings.sh --task_slot_filling slot_tagger_with_focus
+   bash run/MIT_corpus_with_pretrained_word_embeddings.sh --task_slot_filling slot_tagger_with_focus
    ```
 
 ## Tutorials B: Slot filling and intent detection with [ELMo](https://arxiv.org/abs/1802.05365)
@@ -80,9 +91,9 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    * ELMo + BLSTM/BLSTM-CRF/Enc-dec focus model (BLSTM-LSTM) models:  
    ```sh
    slot_intent_model=slot_tagger # slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
-   bash run/atis_with_elmo.sh ${slot_intent_model}
-   bash run/snips_with_elmo.sh ${slot_intent_model}
-   bash run/MIT_corpus_with_elmo.sh ${slot_intent_model}
+   bash run/atis_with_elmo.sh --task_slot_filling ${slot_intent_model}
+   bash run/snips_with_elmo.sh --task_slot_filling  ${slot_intent_model}
+   bash run/MIT_corpus_with_elmo.sh --task_slot_filling  ${slot_intent_model}
    ```
 
 ## Tutorials C: Slot filling and intent detection with [BERT](https://github.com/google-research/bert)
@@ -102,16 +113,16 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    ```sh
    slot_model=NN # NN, NN_crf
    intent_input=CLS # none, CLS, max, CLS_max
-   bash run/atis_with_pure_bert.sh ${slot_model} ${intent_input}
-   bash run/snips_with_pure_bert.sh ${slot_model} ${intent_input}
-   bash run/MIT_corpus_with_pure_bert.sh ${slot_model} ${intent_input}
+   bash run/atis_with_pure_bert.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
+   bash run/snips_with_pure_bert.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
+   bash run/MIT_corpus_with_pure_bert.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
    ```
    * BERT + BLSTM/BLSTM-CRF/Enc-dec focus model (BLSTM-LSTM) models: 
    ```sh
    slot_intent_model=slot_tagger # slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
-   bash run/atis_with_bert.sh ${slot_intent_model}
-   bash run/snips_with_bert.sh ${slot_intent_model}
-   bash run/MIT_corpus_with_bert.sh ${slot_intent_model}
+   bash run/atis_with_bert.sh --task_slot_filling ${slot_intent_model}
+   bash run/snips_with_bert.sh --task_slot_filling ${slot_intent_model}
+   bash run/MIT_corpus_with_bert.sh --task_slot_filling ${slot_intent_model}
    ```
 
  2. For optimizer, you can try **BertAdam** and **AdamW**. In my experiments, I choose to use BertAdam.
@@ -123,16 +134,16 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    ```sh
    slot_model=NN # NN, NN_crf
    intent_input=CLS # none, CLS, max, CLS_max
-   bash run/atis_with_pure_xlnet.sh ${slot_model} ${intent_input}
-   bash run/snips_with_pure_xlnet.sh ${slot_model} ${intent_input}
-   bash run/MIT_corpus_with_pure_xlnet.sh ${slot_model} ${intent_input}
+   bash run/atis_with_pure_xlnet.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
+   bash run/snips_with_pure_xlnet.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
+   bash run/MIT_corpus_with_pure_xlnet.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
    ```
    * XLNET + BLSTM/BLSTM-CRF/Enc-dec focus model (BLSTM-LSTM) models: 
    ```sh
    slot_intent_model=slot_tagger # slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
-   bash run/atis_with_xlnet.sh ${slot_intent_model}
-   bash run/snips_with_xlnet.sh ${slot_intent_model}
-   bash run/MIT_corpus_with_xlnet.sh ${slot_intent_model}
+   bash run/atis_with_xlnet.sh --task_slot_filling ${slot_intent_model}
+   bash run/snips_with_xlnet.sh --task_slot_filling ${slot_intent_model}
+   bash run/MIT_corpus_with_xlnet.sh --task_slot_filling ${slot_intent_model}
    ```
 
  2. For optimizer, you can try BertAdam and AdamW.
