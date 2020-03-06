@@ -205,8 +205,8 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     |:------:|------|-------|
     | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (only target) | 97.26 | 80.95 |
     | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (Cross-lingual + ELMo) | 97.51 | 83.38 |
-    | BLSTM (no Pre-train word emb.) | 97.63 | 86.05 |
-    | Pure BERT | **98.85** | **89.26** |
+    | BLSTM (no Pre-train word emb.) (only target) | 97.63 | 86.05 |
+    | Pure BERT (only target) | **98.85** | **89.26** |
     
     - Thai (th):
     
@@ -214,8 +214,8 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     |:------:|------|-------|
     | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (only target) | 95.13 | 87.26 |
     | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (Cross-lingual + Mult. CoVe + auto) | 96.87 | 91.51 |
-    | BLSTM (no Pre-train word emb.) | 96.99 | 89.17 |
-    | Pure BERT | **97.34** | **92.51** |
+    | BLSTM (no Pre-train word emb.) (only target) | 96.99 | 89.17 |
+    | Pure BERT (only target) | **97.34** | **92.51** |
     
  
  4. Slot F1-scores of [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent):
