@@ -66,9 +66,9 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
 ```
 
  2. Run scripts of training and evaluation at each epoch.
-   * BLSTM model (slot_tagger)
-   * BLSTM-CRF model (slot_tagger_with_crf)
-   * Enc-dec focus model (BLSTM-LSTM) (slot_tagger_with_focus), the same as Encoder-Decoder NN (with aligned inputs)(Liu and Lane, 2016)
+   * BLSTM model (*slot_tagger*)
+   * BLSTM-CRF model (*slot_tagger_with_crf*)
+   * Enc-dec focus model (BLSTM-LSTM) (*slot_tagger_with_focus*), the same as Encoder-Decoder NN (with aligned inputs)(Liu and Lane, 2016)
    ```sh
    slot_intent_model=slot_tagger # slot_tagger, slot_tagger_with_crf, slot_tagger_with_focus
    bash run/atis_with_pretrained_word_embeddings.sh --task_slot_filling ${slot_intent_model}
