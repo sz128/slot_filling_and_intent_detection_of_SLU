@@ -207,6 +207,7 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     |:------:|------|-------|
     | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (only target) | 99.11 | 94.81 |
     | BLSTM (no Pre-train word emb.) | 99.19 | 95.37 |
+    | Enc-dec focus (A. Pre-train word emb. of Glove & KazumaChar) | 99.28 | 96.04 |
     | Pure BERT | **99.34** | **96.23** |
     
     - Spanish (es):
@@ -216,15 +217,18 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
     | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (only target) | 97.26 | 80.95 |
     | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (Cross-lingual + ELMo) | 97.51 | 83.38 |
     | BLSTM (no Pre-train word emb.) (only target) | 97.63 | 86.05 |
+    | Enc-dec focus (A. Pre-train word emb. of BERT input layer) (only target) | 97.67 | 88.67 |
     | Pure BERT (only target) | **98.85** | **89.26** |
     
-    - Thai (th):
+    - Thai (th): (it seems "Enc-dec focus" gives better results than BLSTM)
     
     | models | intent Acc (%) | slot F1-score (%) |
     |:------:|------|-------|
     | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (only target) | 95.13 | 87.26 |
     | [Cross-Lingual Transfer](https://arxiv.org/pdf/1810.13327.pdf) (Cross-lingual + Mult. CoVe + auto) | 96.87 | 91.51 |
     | BLSTM (no Pre-train word emb.) (only target) | 96.99 | 89.17 |
+    | Enc-dec focus (no Pre-train word emb.) (only target) | 96.75 | 91.31 |
+    | Enc-dec focus (A. Pre-train word emb. of BERT input layer) (only target) | 96.87 | 91.05 |
     | Pure BERT (only target) | **97.34** | **92.51** |
     
  
