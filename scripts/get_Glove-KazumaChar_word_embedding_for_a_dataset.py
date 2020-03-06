@@ -10,7 +10,6 @@ import sys
 import re
 import argparse
 
-import torch
 from embeddings import GloveEmbedding, KazumaCharEmbedding
 
 if __name__ == "__main__":

@@ -47,6 +47,9 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
            --in_files data/snips/{train,valid,test} \
            --output_word2vec local/word_embeddings/glove-kazumachar_400_cased_for_snips.txt
    python3 scripts/get_Glove-KazumaChar_word_embedding_for_a_dataset.py \
+           --in_files data/multilingual_task_oriented_data/en/{train,valid,test} \
+           --output_word2vec local/word_embeddings/glove-kazumachar_400_cased_for_multilingual_en.txt
+   python3 scripts/get_Glove-KazumaChar_word_embedding_for_a_dataset.py \
            --in_files data/MIT_corpus/{movie_eng,movie_trivia10k13,restaurant}/{train,valid,test} \
            --output_word2vec local/word_embeddings/glove-kazumachar_400_cased_for_MIT_corpus.txt
 ```
