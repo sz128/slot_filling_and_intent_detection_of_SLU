@@ -74,6 +74,9 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    bash run/atis_with_pretrained_word_embeddings.sh --task_slot_filling ${slot_intent_model}
    bash run/snips_with_pretrained_word_embeddings.sh --task_slot_filling ${slot_intent_model}
    bash run/MIT_corpus_with_pretrained_word_embeddings.sh --task_slot_filling ${slot_intent_model} --dataroot data/MIT_corpus/movie_eng --dataset mit_movie_eng
+   bash run/multilingual_en_with_pretrained_word_embeddings.sh --task_slot_filling ${slot_intent_model}
+   bash run/multilingual_es_with_pretrained_word_embeddings.sh --task_slot_filling ${slot_intent_model}
+   bash run/multilingual_th_with_pretrained_word_embeddings.sh --task_slot_filling ${slot_intent_model}
    ```
 
 ## Tutorials B: Slot filling and intent detection with [ELMo](https://arxiv.org/abs/1802.05365)
@@ -107,6 +110,11 @@ As we can know from the datasets, ATIS may have multiple intents for one utteran
    bash run/atis_with_pure_bert.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
    bash run/snips_with_pure_bert.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
    bash run/MIT_corpus_with_pure_bert.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input} --dataroot data/MIT_corpus/movie_eng --dataset mit_movie_eng
+   bash run/multilingual_en_with_pure_bert.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
+   bash run/multilingual_es_with_pure_bert.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
+   bash run/multilingual_th_with_pure_bert.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
+   bash run/ECSA_with_pure_bert.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
+   bash run/CoNLL2003_NER_with_pure_bert.sh --task_slot_filling ${slot_model} --task_intent_detection ${intent_input}
    ```
    * BERT + BLSTM/BLSTM-CRF/Enc-dec focus model (BLSTM-LSTM) models: 
    ```sh
