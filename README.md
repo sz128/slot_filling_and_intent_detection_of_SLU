@@ -4,7 +4,13 @@
    * An implementation of BLSTM-CRF based on [jiesutd/NCRFpp](https://github.com/jiesutd/NCRFpp/blob/master/model/crf.py)
    * An implementation of joint training of slot filling and intent detection tasks [(Bing Liu and Ian Lane, 2016)](https://arxiv.org/abs/1609.01454).
  * Basic models + [ELMo](https://arxiv.org/abs/1802.05365) / [BERT](https://github.com/google-research/bert) / [XLNET](https://github.com/zihangdai/xlnet)
- * Tutorials on [ATIS](https://github.com/yvchen/JointSLU), [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines), [the Facebook’s multilingual dataset](https://fb.me/multilingual_task_oriented_data), [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent), [E-commerce Shopping Assistant (ECSA) from Alibaba](https://github.com/pangolulu/DCMTL)(w/o intent, in Chinese), and [CoNLL-2003 NER](https://github.com/kamalkraj/BERT-NER/tree/dev/data)(w/o intent) datasets.
+ * Tutorials on datasets:
+   - [ATIS](https://github.com/yvchen/JointSLU)
+   - [SNIPS](https://github.com/snipsco/nlu-benchmark/tree/master/2017-06-custom-intent-engines)
+   - The [Facebook’s multilingual dataset](https://fb.me/multilingual_task_oriented_data)
+   - [MIT_Restaurant_Movie_corpus](https://groups.csail.mit.edu/sls/downloads/)(w/o intent)
+   - [E-commerce Shopping Assistant (ECSA) from Alibaba](https://github.com/pangolulu/DCMTL)(w/o intent, in Chinese)
+   - [CoNLL-2003 NER](https://github.com/kamalkraj/BERT-NER/tree/dev/data)(w/o intent)
  
  <img src="./figs/data_annotation_ATIS.png" width="750" alt="data annotation"/>
 
