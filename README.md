@@ -18,7 +18,7 @@
 | [Tutorials D: with XLNET](#tutorials-d-slot-filling-and-intent-detection-with-xlnet) | Tutorials D: Slot filling and intent detection with XLNET |
 | [Results](#results) | Results of different methods on certain datasets |
 | [Inference Mode](#inference-mode) | Inference Mode |
-| [Reference](#reference) | Reference of our paper |
+| [Reference](#reference) | How to cite? |
 
 ## Setup
  * python 3.6.x
