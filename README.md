@@ -8,6 +8,18 @@
  
  <img src="./figs/data_annotation_ATIS.png" width="750" alt="data annotation"/>
 
+| Section | Description |
+|-|-|
+| [Setup](#setup) | Required packages |
+| [Evaluation of intent detection for multiple intents](#about-the-evaluations-of-intent-detection-on-atis-and-snips-datasets) | How to report performance of intent detection on ATIS dataset |
+| [Tutorials A: with pretrained word embeddings](#tutorials-a-slot-filling-and-intent-detection-with-pretrained-word-embeddings) | Tutorials A: Slot filling and intent detection with pretrained word embeddings |
+| [Tutorials B: with ELMo](#tutorials-b-slot-filling-and-intent-detection-with-elmo) | Tutorials B: Slot filling and intent detection with ELMo |
+| [Tutorials C: with BERT](#tutorials-c-slot-filling-and-intent-detection-with-bert) | Tutorials B: Slot filling and intent detection with BERT |
+| [Tutorials D: with XLNET](#tutorials-d-slot-filling-and-intent-detection-with-xlnet) | Tutorials B: Slot filling and intent detection with XLNET |
+| [Results](#results) | Results of different methods on certain datasets |
+| [Inference Mode](#inference-mode) | Inference Mode |
+| [Reference](#reference) | Reference of our paper |
+
 ## Setup
  * python 3.6.x
  * [pytorch](https://pytorch.org/) 1.4.0
@@ -16,7 +28,7 @@
  * [ELMo in allennlp](https://github.com/allenai/allennlp): pip install allennlp
  * [BERT/XLNET in transformers](https://github.com/huggingface/transformers): pip install transformers (2.5.0)
  
-## About the evaluations of intent detection on ATIS and SNIPS datasets.
+## About the evaluations of intent detection on ATIS and SNIPS datasets
 
 As we can know from the datasets, ATIS may have multiple intents for one utterance while SNIPS has only one intent for one utterance. For example, "show me all flights and fares from denver to san francisco <=> atis_flight && atis_airfare". Therefore, there is a public trick in the training and evaluation stages for intent detection of ATIS dataset.
 
