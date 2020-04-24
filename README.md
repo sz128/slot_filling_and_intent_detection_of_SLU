@@ -14,8 +14,8 @@
 | [Evaluation of intent detection for multiple intents](#about-the-evaluations-of-intent-detection-on-atis-and-snips-datasets) | How to report performance of intent detection on ATIS dataset |
 | [Tutorials A: with pretrained word embeddings](#tutorials-a-slot-filling-and-intent-detection-with-pretrained-word-embeddings) | Tutorials A: Slot filling and intent detection with pretrained word embeddings |
 | [Tutorials B: with ELMo](#tutorials-b-slot-filling-and-intent-detection-with-elmo) | Tutorials B: Slot filling and intent detection with ELMo |
-| [Tutorials C: with BERT](#tutorials-c-slot-filling-and-intent-detection-with-bert) | Tutorials B: Slot filling and intent detection with BERT |
-| [Tutorials D: with XLNET](#tutorials-d-slot-filling-and-intent-detection-with-xlnet) | Tutorials B: Slot filling and intent detection with XLNET |
+| [Tutorials C: with BERT](#tutorials-c-slot-filling-and-intent-detection-with-bert) | Tutorials C: Slot filling and intent detection with BERT |
+| [Tutorials D: with XLNET](#tutorials-d-slot-filling-and-intent-detection-with-xlnet) | Tutorials D: Slot filling and intent detection with XLNET |
 | [Results](#results) | Results of different methods on certain datasets |
 | [Inference Mode](#inference-mode) | Inference Mode |
 | [Reference](#reference) | Reference of our paper |
