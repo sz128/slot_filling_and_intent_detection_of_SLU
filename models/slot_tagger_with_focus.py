@@ -154,10 +154,7 @@ class LSTMTagger_focus(nn.Module):
 
         tag_lstm_out_reshape = tag_lstm_out.contiguous().view(tag_lstm_out.size(0)*tag_lstm_out.size(1), tag_lstm_out.size(2))
         tag_space = self.hidden2tag(self.dropout_layer(tag_lstm_out_reshape))
-        if masked_output is None:
-            tag_scores = F.log_softmax(tag_space, dim=1)
-        else:
-            tag_scores = masked_function.index_masked_log_softmax(tag_space, masked_output, dim=1)
+        tag_scores = F.log_softmax(tag_space, dim=1)
         tag_scores = tag_scores.view(tag_lstm_out.size(0), tag_lstm_out.size(1), tag_space.size(1))
         
         if with_snt_classifier:
@@ -205,10 +202,7 @@ class LSTMTagger_focus(nn.Module):
 
             tag_lstm_out_reshape = tag_lstm_out.contiguous().view(tag_lstm_out.size(0)*tag_lstm_out.size(1), tag_lstm_out.size(2))
             tag_space = self.hidden2tag(self.dropout_layer(tag_lstm_out_reshape))
-            if masked_output is None:
-                tag_scores = F.log_softmax(tag_space, dim=1) # bsize x outsize
-            else:
-                tag_scores = masked_function.index_masked_log_softmax(tag_space, masked_output, dim=1)
+            tag_scores = F.log_softmax(tag_space, dim=1) # bsize x outsize
             top_path_tag_scores.append(torch.unsqueeze(tag_scores.data, 1))
 
             max_probs, decoder_argmax = torch.max(tag_scores, 1)
@@ -270,10 +264,7 @@ class LSTMTagger_focus(nn.Module):
 
             tag_lstm_out_reshape = tag_lstm_out.contiguous().view(tag_lstm_out.size(0)*tag_lstm_out.size(1), tag_lstm_out.size(2))
             tag_space = self.hidden2tag(self.dropout_layer(tag_lstm_out_reshape))
-            if masked_output is None:
-                out = F.log_softmax(tag_space) # (batch*beam) x outsize
-            else:
-                out = masked_function.index_masked_log_softmax(tag_space, masked_output, dim=1)
+            out = F.log_softmax(tag_space) # (batch*beam) x outsize
             
             word_lk = out.view(beam_size, remaining_sents, -1).transpose(0, 1).contiguous()
             
