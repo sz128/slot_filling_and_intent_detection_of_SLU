@@ -1,3 +1,4 @@
+G
 # Slot filling and intent detection tasks of spoken language understanding
  * Basic models for slot filling and intent detection:
    * An implementation for "focus" part of the paper "Encoder-decoder with focus-mechanism for sequence labelling based spoken language understanding" [(Su Zhu and Kai Yu, 2016)](https://arxiv.org/abs/1608.02097).
